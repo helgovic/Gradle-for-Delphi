@@ -27,6 +27,8 @@ In the "Job name" box enter a jobname. This will name the jar and JNI files.
 
 Hit "Go"
 
+As the JNI file can grow large you can use "Shrink JNI Files" addon, which can be downloaded from here 
+
 
 
 
