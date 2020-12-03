@@ -1,0 +1,101 @@
+object FManifest: TFManifest
+  Left = 0
+  Top = 0
+  BorderStyle = bsToolWindow
+  Caption = 'AndroidManifest'
+  ClientHeight = 309
+  ClientWidth = 529
+  Color = 3288877
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Label3: TLabel
+    Left = 15
+    Top = 27
+    Width = 241
+    Height = 13
+    Caption = 'The following Android Manifest entries were found'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
+  object MAndrMan: TMemo
+    Left = 15
+    Top = 52
+    Width = 500
+    Height = 159
+    Color = 3288877
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    TabOrder = 3
+    WordWrap = False
+  end
+  object BDissMiss: TPanel
+    Left = 85
+    Top = 234
+    Width = 117
+    Height = 49
+    Caption = 'Dismiss'
+    Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 0
+    TabStop = True
+    OnClick = BDissMissClick
+  end
+  object BSaveToClipb: TPanel
+    Left = 204
+    Top = 234
+    Width = 117
+    Height = 49
+    Caption = 'Save To Clipboard'
+    Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 1
+    TabStop = True
+    OnClick = BSaveToClipbClick
+  end
+  object BAddManifest: TPanel
+    Left = 327
+    Top = 234
+    Width = 117
+    Height = 49
+    Caption = 'Add to manifest'
+    Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 2
+    TabStop = True
+  end
+end

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.210,D:\GetJars\Unit1.pas=D:\GetJars\UGetJars.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.211,D:\GetJars\Unit1.pas=D:\GetJars\UFAndroidManifest.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.573,=Jcl.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.946,=D:\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.940,=D:\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.880,=D:\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.285,D:\GetJars\UFGetJars.dfm=D:\GetJars\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.156,=tmsdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.556,D:\Deplhi\GetJars\UAddRep.pas=D:\Deplhi\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.211,D:\GetJars\Unit1.dfm=D:\GetJars\UFAndroidManifest.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.345,D:\Deplhi\GetJars\UFRepositories.pas=D:\Deplhi\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.556,D:\Deplhi\GetJars\UAddRep.dfm=D:\Deplhi\GetJars\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.208,=tmsexdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.388,=rtl.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.853,=D:\Deplhi\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.826,=D:\Deplhi\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.071,=D:\GetJars\android.bmp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.285,D:\GetJars\UFGetJars.pas=D:\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.767,=vclwinx.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.469,=D:\GetJars\URunBat.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.467,D:\GetJars\URunBat.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.574,=D:\GetJars\URunBat.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.332,D:\GetJars\GetJars.dproj=C:\Users\Helge\Documents\Embarcadero\Studio\Projects\Package1.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.345,D:\Deplhi\GetJars\UFRepositories.dfm=D:\Deplhi\GetJars\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.353,D:\GetJars\URunBat.pas=</Transaction>
+  </Transactions>
+</BorlandProject>
