@@ -3,7 +3,7 @@ object FGetJars: TFGetJars
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Gradle for Delphi'
-  ClientHeight = 595
+  ClientHeight = 618
   ClientWidth = 1043
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
@@ -228,8 +228,8 @@ object FGetJars: TFGetJars
     TabStop = True
   end
   object BGo: TPanel
-    Left = 342
-    Top = 524
+    Left = 281
+    Top = 548
     Width = 117
     Height = 49
     Caption = 'Go'
@@ -246,8 +246,8 @@ object FGetJars: TFGetJars
     OnClick = BGoClick
   end
   object BAddRep: TPanel
-    Left = 463
-    Top = 524
+    Left = 402
+    Top = 548
     Width = 117
     Height = 49
     Caption = 'Repositories'
@@ -264,8 +264,8 @@ object FGetJars: TFGetJars
     OnClick = BAddRepClick
   end
   object BClose: TPanel
-    Left = 221
-    Top = 524
+    Left = 160
+    Top = 548
     Width = 117
     Height = 49
     Caption = 'Close'
@@ -282,8 +282,8 @@ object FGetJars: TFGetJars
     OnClick = BCloseClick
   end
   object BNewJob: TPanel
-    Left = 705
-    Top = 524
+    Left = 644
+    Top = 548
     Width = 117
     Height = 49
     Caption = 'New Job'
@@ -300,11 +300,11 @@ object FGetJars: TFGetJars
     OnClick = BNewJobClick
   end
   object BSave: TPanel
-    Left = 584
-    Top = 524
+    Left = 523
+    Top = 548
     Width = 117
     Height = 49
-    Caption = 'Save'
+    Caption = 'Save Job'
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
@@ -318,8 +318,8 @@ object FGetJars: TFGetJars
     OnClick = BSaveClick
   end
   object TSKeepLibs: TToggleSwitch
-    Left = 843
-    Top = 538
+    Left = 15
+    Top = 503
     Width = 157
     Height = 20
     Color = 3288877
@@ -335,5 +335,23 @@ object FGetJars: TFGetJars
     SwitchWidth = 40
     TabOrder = 13
     ThumbColor = clGreen
+  end
+  object BDelete: TPanel
+    Left = 765
+    Top = 548
+    Width = 117
+    Height = 49
+    Caption = 'Delete Job'
+    Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 14
+    TabStop = True
+    OnClick = BDeleteClick
   end
 end

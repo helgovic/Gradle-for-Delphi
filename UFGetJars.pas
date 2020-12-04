@@ -30,6 +30,7 @@ type
     BNewJob: TPanel;
     BSave: TPanel;
     TSKeepLibs: TToggleSwitch;
+    BDelete: TPanel;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -37,6 +38,7 @@ type
     procedure BNewJobClick(Sender: TObject);
     procedure BAddRepClick(Sender: TObject);
     procedure BCloseClick(Sender: TObject);
+    procedure BDeleteClick(Sender: TObject);
   private
     procedure ExecOut(const Text: string);
     procedure LoadJob(JobNam: String);
@@ -416,6 +418,33 @@ end;
 procedure TFGetJars.BCloseClick(Sender: TObject);
 begin
    Self.ModalResult := mrClose;
+end;
+
+procedure TFGetJars.BDeleteClick(Sender: TObject);
+begin
+
+   if MessageDlg('Are you sure, you want to delete job ' + LEJobName.Text, mtConfirmation, [mbYes, mbNo], 0) = mrYes
+   then
+      with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
+         try
+
+            DeleteKey(LEJobName.Text, 'Repositories');
+            DeleteKey(LEJobName.Text, 'Dependensies');
+            DeleteKey(LEJobName.Text, 'AddDependensies');
+            DeleteKey(LEJobName.Text, 'Excludes');
+
+            CBProjJobs.Items.Delete(CBProjJobs.Items.IndexOf(LEJobName.Text));
+            CBProjJobs.ItemIndex := CBProjJobs.Items.Count - 1;
+            CBProjJobsSelect(CBProjJobs);
+
+            WriteString('Project', 'Jobs', MemoStrToIniStr(CBProjJobs.Items.Text));
+
+            UpdateFile;
+
+         finally
+            Free;
+         end;
+
 end;
 
 procedure TFGetJars.BGoClick(Sender: TObject);
