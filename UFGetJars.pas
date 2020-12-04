@@ -5,8 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, AdvSmoothProgressBar, AdvSmoothButton,
-  Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls, AdvSmoothListBox,
-  AdvSmoothComboBox, System.Zip, System.IOUtils, JclFileUtils, AdvOfficeButtons,
+  Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls,
+  System.Zip, System.IOUtils, JclFileUtils,
   Vcl.ComCtrls, Vcl.WinXCtrls;
 
 type
@@ -459,11 +459,13 @@ begin
    BAddRep.Enabled := False;
    BNewJob.Enabled := False;
    BSave.Enabled := False;
+   BDelete.Enabled := False;
    BClose.Color := clGray;
    BGo.Color := clGray;
    BAddRep.Color := clGray;
    BNewJob.Color := clGray;
    BSave.Color := clGray;
+   BDelete.Color := clGray;
 
    TThread.CreateAnonymousThread(
    procedure
@@ -1387,11 +1389,13 @@ begin
          BAddRep.Enabled := True;
          BNewJob.Enabled := True;
          BSave.Enabled := True;
+         BDelete.Enabled := True;
          BClose.Color := clBlack;
          BGo.Color := clBlack;
          BAddRep.Color := clBlack;
          BNewJob.Color := clBlack;
          BSave.Color := clBlack;
+         BDelete.Color := clBlack;
 
       end;
 
