@@ -4,9 +4,14 @@ interface
 
 uses
   Windows, SysUtils, Classes, vcl.Menus, vcl.ActnList, ToolsAPI, vcl.ComCtrls, vcl.ExtCtrls, vcl.Graphics, vcl.Controls,
-  System.IOUtils, vcl.Dialogs, Threading, System.Win.Registry;
+  System.IOUtils, vcl.Dialogs, Threading, System.Win.Registry, Vcl.Forms;
 
 type
+
+  TBADIToolsAPIFunctions = record
+     Class Procedure RegisterFormClassForTheming(Const AFormClass : TCustomFormClass;
+        Const Component : TComponent = Nil); static;
+  end;
 
   TGetJarsExpert = class(TObject)
   private
@@ -168,6 +173,11 @@ begin
          FRepositories := TFRepositories.Create(FGetJars);
          FAddRep := TFAddRep.Create(FRepositories);
 
+         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFGetJars, FGetJars);
+         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFManifest, FManifest);
+         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFRepositories, FRepositories);
+         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFAddRep, FAddRep);
+
          with TRegIniFile.Create(REG_KEY) do
          try
             if ReadString(REG_BUILD_OPTIONS, 'Repositories', '') = ''
@@ -240,6 +250,57 @@ begin
    FGetJars.Free;
 
    inherited Destroy;
+end;
+
+class procedure TBADIToolsAPIFunctions.RegisterFormClassForTheming(
+  const AFormClass: TCustomFormClass; const Component: TComponent);
+begin
+
+   {$IFDEF Ver320}
+   Var
+     ITS : IOTAIDEThemingServices250;
+   {$ENDIF Ver320}
+   {$IFDEF Ver330}
+   Var
+     ITS : IOTAIDEThemingServices250;
+   {$ENDIF Ver330}
+   {$IFDEF Ver340}
+   Var
+     ITS : IOTAIDEThemingServices;
+  {$ENDIF Ver340}
+
+   Begin
+
+     {$IFDEF Ver340}
+     If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then
+       If ITS.IDEThemingEnabled Then
+         Begin
+           ITS.RegisterFormClass(AFormClass);
+           If Assigned(Component) Then
+             ITS.ApplyTheme(Component);
+         End;
+     {$ENDIF Ver340}
+
+     {$IFDEF Ver330}
+     If Supports(BorlandIDEServices, IOTAIDEThemingServices250, ITS) Then
+       If ITS.IDEThemingEnabled Then
+         Begin
+           ITS.RegisterFormClass(AFormClass);
+           If Assigned(Component) Then
+             ITS.ApplyTheme(Component);
+         End;
+     {$ENDIF Ver330}
+     {$IFDEF Ver320}
+     If Supports(BorlandIDEServices, IOTAIDEThemingServices250, ITS) Then
+       If ITS.IDEThemingEnabled Then
+         Begin
+           ITS.RegisterFormClass(AFormClass);
+           If Assigned(Component) Then
+             ITS.ApplyTheme(Component);
+         End;
+     {$ENDIF Ver320}
+   End;
+
 end;
 
 initialization
