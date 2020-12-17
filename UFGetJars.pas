@@ -12,7 +12,7 @@ uses
 type
   TFGetJars = class(TForm)
     Label1: TLabel;
-    MStatus: TMemo;
+    MExclFinal: TMemo;
     MJars: TMemo;
     MAddJars: TMemo;
     Label2: TLabel;
@@ -24,20 +24,21 @@ type
     CBProjJobs: TComboBox;
     Label5: TLabel;
     ASPB: TProgressBar;
-    BGo: TPanel;
-    BAddRep: TPanel;
-    BClose: TPanel;
-    BNewJob: TPanel;
-    BSave: TPanel;
     TSKeepLibs: TToggleSwitch;
-    BDelete: TPanel;
+    BGo: TButton;
+    BAddRep: TButton;
+    BClose: TButton;
+    BNewJob: TButton;
+    BSave: TButton;
+    BDelete: TButton;
+    MStatus: TMemo;
+    Label6: TLabel;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
     procedure BSaveClick(Sender: TObject);
     procedure BNewJobClick(Sender: TObject);
     procedure BAddRepClick(Sender: TObject);
-    procedure BCloseClick(Sender: TObject);
     procedure BDeleteClick(Sender: TObject);
   private
     procedure ExecOut(const Text: string);
@@ -81,6 +82,7 @@ begin
    Result := StringReplace(InStr, '\', '\\', [rfReplaceAll]);
    Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
    Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
+   Result := '''' + Result + '''';
 end;
 
 function StrInArray(const Value : String;const ArrayOfString : Array of String) : Boolean;
@@ -292,6 +294,7 @@ begin
          WriteString(LEJobName.Text, 'Dependensies', MemoStrToIniStr(MJars.Lines.Text));
          WriteString(LEJobName.Text, 'AddDependensies', MemoStrToIniStr(MAddJars.Lines.Text));
          WriteString(LEJobName.Text, 'Excludes', MemoStrToIniStr(MExclJars.Lines.Text));
+         WriteString(LEJobName.Text, 'FinalExcludes', MemoStrToIniStr(MExclFinal.Lines.Text));
 
          if Pos(LEJobName.Text, CBProjJobs.Items.Text) = 0
          then
@@ -320,6 +323,7 @@ begin
          MJars.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'Dependensies', ''));
          MAddJars.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'AddDependensies', ''));
          MExclJars.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'Excludes', ''));
+         MExclFinal.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'FinalExcludes', ''));
 
          CBProjJobs.Text := JobNam;
 
@@ -415,11 +419,6 @@ begin
 
 end;
 
-procedure TFGetJars.BCloseClick(Sender: TObject);
-begin
-   Self.ModalResult := mrClose;
-end;
-
 procedure TFGetJars.BDeleteClick(Sender: TObject);
 begin
 
@@ -460,18 +459,11 @@ begin
    BNewJob.Enabled := False;
    BSave.Enabled := False;
    BDelete.Enabled := False;
-   BClose.Color := clGray;
-   BGo.Color := clGray;
-   BAddRep.Color := clGray;
-   BNewJob.Color := clGray;
-   BSave.Color := clGray;
-   BDelete.Color := clGray;
 
    TThread.CreateAnonymousThread(
    procedure
 
    var
-      ExclFiles: TStringList;
       x, i: Integer;
       FileList: TArray<String>;
       zipFile: TZipFile;
@@ -640,11 +632,39 @@ begin
 
                end;
 
-            FileList := TDirectory.GetFiles(LibsDir, '*.*', TSearchOption.soTopDirectoryOnly);
+            FileList := TDirectory.GetFiles(LibsDir, '*.aar', TSearchOption.soTopDirectoryOnly);
 
             ASPB.Max := Length(FileList);
 
-            ExclFiles := TStringList.Create;
+            zipFile := TZipFile.Create;
+
+            for x := 0 to High(FileList) do
+               if zipFile.IsValid(FileList[x])
+               then
+                  begin
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                        MStatus.Lines.Add('');
+                        SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                     end);
+
+                     zipFile.Open(FileList[x], zmRead);
+                     zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        ASPB.Position := x + 1;
+                     end);
+
+                  end;
+
+            FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
+
+            ASPB.Max := Length(FileList);
 
             for x := 0 to High(FileList) do
                begin
@@ -661,10 +681,7 @@ begin
 
                   if ExcludeFile
                   then
-                     begin
-                        ExclFiles.Add(FileList[x]);
-                        Continue;
-                     end;
+                     Continue;
 
                   TThread.Synchronize(TThread.CurrentThread,
                   procedure
@@ -674,38 +691,14 @@ begin
                      SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
                   end);
 
-                  zipFile := TZipFile.Create;
+                  if zipFile.IsValid(FileList[x])
+                  then
+                     begin
 
-                  try
+                        zipFile.Open(FileList[x], zmRead);
+                        zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
 
-                     if zipFile.IsValid(FileList[x])
-                     then
-                        begin
-
-                           zipFile.Open(FileList[x], zmRead);
-                           zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
-
-                           if AnsiLowerCase(ExtractFileExt(FileList[x])) = '.aar'
-                           then
-                              begin
-
-                                 if zipFile.IsValid(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])) + '\classes.jar')
-                                 then
-                                    begin
-                                       zipFile.Open(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])) + '\classes.jar', zmRead);
-                                       zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])) + '\classes');
-                                       zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
-                                    end;
-
-                              end
-                           else
-                              zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
-
-                        end;
-
-                  finally
-                     zipFile.Free;
-                  end;
+                     end;
 
                   TThread.Synchronize(TThread.CurrentThread,
                   procedure
@@ -852,100 +845,103 @@ begin
             then
                CreateDir(ProjDir + 'Libs');
 
-            ASPB.Max := ExclFiles.Count;
-            ASPB.Position := 0;
+            DeleteDirectory(LibsDir + '\ExtractedClasses', False);
 
-            if ExclFiles.Count > 0
-            then
+            FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
+
+            ASPB.Max := Length(FileList);
+
+            for x := 0 to High(FileList) do
                begin
 
-                  for x := 0 to ExclFiles.Count - 1 do
-                     begin
+                  ExcludeFile := False;
 
-                        TThread.Synchronize(TThread.CurrentThread,
-                        procedure
+                  for i := 0 to MExclFinal.Lines.Count - 1 do
+                     if Pos(AnsiLowerCase(MExclFinal.Lines[i]), AnsiLowerCase(FileList[x])) > 0
+                     then
                         begin
-                           MStatus.Lines.Add('Extracting: ' + ExclFiles[x]);
-                           MStatus.Lines.Add('');
-                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-                        end);
-
-                        zipFile := TZipFile.Create;
-
-                        try
-
-                           if zipFile.IsValid(ExclFiles[x])
-                           then
-                              begin
-
-                                 zipFile.Open(ExclFiles[x], zmRead);
-                                 zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(ExclFiles[x]), ExtractFileName(ExclFiles[x])));
-
-                                 if AnsiLowerCase(ExtractFileExt(ExclFiles[x])) = '.aar'
-                                 then
-                                    begin
-
-                                       if zipFile.IsValid(LibsDir + '\' + StrBefore(ExtractFileExt(ExclFiles[x]), ExtractFileName(ExclFiles[x])) + '\classes.jar')
-                                       then
-                                          begin
-                                             zipFile.Open(LibsDir + '\' + StrBefore(ExtractFileExt(ExclFiles[x]), ExtractFileName(ExclFiles[x])) + '\classes.jar', zmRead);
-                                             zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(ExclFiles[x]), ExtractFileName(ExclFiles[x])) + '\classes');
-                                             zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
-                                          end;
-
-                                    end
-                                 else
-                                    zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
-
-                              end;
-
-                        finally
-                           zipFile.Free;
+                           ExcludeFile := True;
+                           Break;
                         end;
 
-                        TThread.Synchronize(TThread.CurrentThread,
-                        procedure
-                        begin
-                           ASPB.Position := x + 1;
-                        end);
-
-                     end;
-
-                  if DirectoryExists(LibsDir + '\ExtractedClasses\META-INF')
+                  if ExcludeFile
                   then
-                     DeleteDirectory(LibsDir + '\ExtractedClasses\META-INF', False);
+                     Continue;
 
-                   FileList := TDirectory.GetFiles(LibsDir + '\ExtractedClasses', '*.*', TSearchOption.soTopDirectoryOnly);
+                  TThread.Synchronize(TThread.CurrentThread,
+                  procedure
+                  begin
+                     MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                     MStatus.Lines.Add('');
+                     SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                  end);
 
-                   for i := 0 to High(FileList) do
-                      DeleteFile(FileList[i]);
-
-                  FileLines.Clear;
-
-                  FileLines.Add(ExtractFileDrive(LibsDir));
-                  FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
-                  FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
-                  FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                  if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                  if zipFile.IsValid(FileList[x])
                   then
                      begin
-                        ShowMessage('There was an error creating ' + LEJobName.Text + '.jar. Please check Output');
-                        Exit;
+
+                        zipFile.Open(FileList[x], zmRead);
+                        zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
+
                      end;
 
-                  DeleteFile(ProjDir + 'Libs\' + LEJobName.Text + '.jar');
-                  MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(ProjDir + 'Libs\' + LEJobName.Text + '.jar'));
-                  DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
+                  TThread.Synchronize(TThread.CurrentThread,
+                  procedure
+                  begin
+                     ASPB.Position := x + 1;
+                  end);
 
-               end
-            else
-               begin
-                  DeleteFile(ProjDir + 'Libs\' + LEJobName.Text + '.jar');
-                  MoveFile(PChar(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar'), PChar(ProjDir + 'Libs\' + LEJobName.Text + '.jar'));
                end;
 
-            ExclFiles.Free;
+            zipFile.Free;
+
+            TThread.Synchronize(TThread.CurrentThread,
+            procedure
+            begin
+               MStatus.Lines.Add('Classes Extracted');
+               MStatus.Lines.Add('');
+               MStatus.Lines.Add('Creating ' + LEJobName.Text + '.jar');
+               MStatus.Lines.Add('');
+               SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+            end);
+
+            if FileExists(LibsDir + '\ExtractedClasses\module-info.class')
+            then
+               DeleteFile(LibsDir + '\ExtractedClasses\module-info.class');
+
+            if DirectoryExists(LibsDir + '\ExtractedClasses\META-INF')
+            then
+               DeleteDirectory(LibsDir + '\ExtractedClasses\META-INF', False);
+
+            FileList := TDirectory.GetFiles(LibsDir + '\ExtractedClasses', '*.*', TSearchOption.soTopDirectoryOnly);
+
+            for i := 0 to High(FileList) do
+               DeleteFile(FileList[i]);
+
+            FileLines.Clear;
+
+            FileLines.Add(ExtractFileDrive(LibsDir));
+            FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
+            FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
+            FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+            then
+               begin
+                  ShowMessage('There was an error creating' + LEJobName.Text + '.jar. Please check Output');
+                  Exit;
+               end;
+
+            TThread.Synchronize(TThread.CurrentThread,
+            procedure
+            begin
+               MStatus.Lines.Add(LEJobName.Text + '.jar Created');
+               MStatus.Lines.Add('');
+               SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+            end);
+
+            DeleteFile(ProjDir + 'Libs\' + LEJobName.Text + '.jar');
+            MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(ProjDir + 'Libs\' + LEJobName.Text + '.jar'));
 
             FileList := TDirectory.GetFiles(LibsDir, '*.xml', TSearchOption.soAllDirectories);
 
@@ -1390,12 +1386,6 @@ begin
          BNewJob.Enabled := True;
          BSave.Enabled := True;
          BDelete.Enabled := True;
-         BClose.Color := clBlack;
-         BGo.Color := clBlack;
-         BAddRep.Color := clBlack;
-         BNewJob.Color := clBlack;
-         BSave.Color := clBlack;
-         BDelete.Color := clBlack;
 
       end;
 

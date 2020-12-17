@@ -3,7 +3,7 @@ object FGetJars: TFGetJars
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Gradle for Delphi'
-  ClientHeight = 618
+  ClientHeight = 808
   ClientWidth = 1043
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
@@ -45,9 +45,9 @@ object FGetJars: TFGetJars
   object Label3: TLabel
     Left = 530
     Top = 221
-    Width = 34
+    Width = 231
     Height = 13
-    Caption = 'Output'
+    Caption = 'Exlude from final jar (included in other jar (job) )'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
@@ -70,7 +70,7 @@ object FGetJars: TFGetJars
   end
   object Label5: TLabel
     Left = 358
-    Top = 456
+    Top = 638
     Width = 59
     Height = 13
     Caption = 'Project Jobs'
@@ -81,7 +81,20 @@ object FGetJars: TFGetJars
     Font.Style = []
     ParentFont = False
   end
-  object MStatus: TMemo
+  object Label6: TLabel
+    Left = 15
+    Top = 410
+    Width = 34
+    Height = 13
+    Caption = 'Output'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
+  object MExclFinal: TMemo
     Left = 530
     Top = 240
     Width = 500
@@ -93,9 +106,8 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssVertical
     TabOrder = 0
+    WordWrap = False
   end
   object MJars: TMemo
     Left = 15
@@ -129,7 +141,7 @@ object FGetJars: TFGetJars
   end
   object LEJobName: TLabeledEdit
     Left = 15
-    Top = 472
+    Top = 654
     Width = 328
     Height = 21
     Color = 3288877
@@ -154,7 +166,7 @@ object FGetJars: TFGetJars
   end
   object LEJ2OLoc: TLabeledEdit
     Left = 701
-    Top = 472
+    Top = 654
     Width = 328
     Height = 21
     Color = 3288877
@@ -194,7 +206,7 @@ object FGetJars: TFGetJars
   end
   object CBProjJobs: TComboBox
     Left = 358
-    Top = 472
+    Top = 654
     Width = 328
     Height = 21
     AutoComplete = False
@@ -215,7 +227,7 @@ object FGetJars: TFGetJars
   end
   object ASPB: TProgressBar
     Left = 15
-    Top = 416
+    Top = 608
     Width = 1015
     Height = 19
     BorderWidth = 1
@@ -227,99 +239,9 @@ object FGetJars: TFGetJars
     TabOrder = 12
     TabStop = True
   end
-  object BGo: TPanel
-    Left = 281
-    Top = 548
-    Width = 117
-    Height = 49
-    Caption = 'Go'
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentBackground = False
-    ParentFont = False
-    TabOrder = 1
-    TabStop = True
-    OnClick = BGoClick
-  end
-  object BAddRep: TPanel
-    Left = 402
-    Top = 548
-    Width = 117
-    Height = 49
-    Caption = 'Repositories'
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentBackground = False
-    ParentFont = False
-    TabOrder = 2
-    TabStop = True
-    OnClick = BAddRepClick
-  end
-  object BClose: TPanel
-    Left = 160
-    Top = 548
-    Width = 117
-    Height = 49
-    Caption = 'Close'
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentBackground = False
-    ParentFont = False
-    TabOrder = 4
-    TabStop = True
-    OnClick = BCloseClick
-  end
-  object BNewJob: TPanel
-    Left = 644
-    Top = 548
-    Width = 117
-    Height = 49
-    Caption = 'New Job'
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentBackground = False
-    ParentFont = False
-    TabOrder = 7
-    TabStop = True
-    OnClick = BNewJobClick
-  end
-  object BSave: TPanel
-    Left = 523
-    Top = 548
-    Width = 117
-    Height = 49
-    Caption = 'Save Job'
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentBackground = False
-    ParentFont = False
-    TabOrder = 8
-    TabStop = True
-    OnClick = BSaveClick
-  end
   object TSKeepLibs: TToggleSwitch
     Left = 15
-    Top = 503
+    Top = 685
     Width = 157
     Height = 20
     Color = 3288877
@@ -336,22 +258,110 @@ object FGetJars: TFGetJars
     TabOrder = 13
     ThumbColor = clGreen
   end
-  object BDelete: TPanel
-    Left = 765
-    Top = 548
+  object BGo: TButton
+    Left = 281
+    Top = 730
     Width = 117
     Height = 49
-    Caption = 'Delete Job'
-    Color = clBlack
+    Caption = 'Go'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ParentFont = False
+    TabOrder = 1
+    OnClick = BGoClick
+  end
+  object BAddRep: TButton
+    Left = 402
+    Top = 730
+    Width = 117
+    Height = 49
+    Caption = 'Repositories'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 2
+    OnClick = BAddRepClick
+  end
+  object BClose: TButton
+    Left = 160
+    Top = 730
+    Width = 117
+    Height = 49
+    Caption = 'Close'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ModalResult = 8
+    ParentFont = False
+    TabOrder = 4
+  end
+  object BNewJob: TButton
+    Left = 644
+    Top = 730
+    Width = 117
+    Height = 49
+    Caption = 'New Job'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 7
+    OnClick = BNewJobClick
+  end
+  object BSave: TButton
+    Left = 523
+    Top = 730
+    Width = 117
+    Height = 49
+    Caption = 'Save Job'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 8
+    OnClick = BSaveClick
+  end
+  object BDelete: TButton
+    Left = 765
+    Top = 730
+    Width = 117
+    Height = 49
+    Caption = 'Delete Job'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
     ParentFont = False
     TabOrder = 14
-    TabStop = True
     OnClick = BDeleteClick
+  end
+  object MStatus: TMemo
+    Left = 15
+    Top = 428
+    Width = 1014
+    Height = 159
+    Color = 3288877
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 15
   end
 end
