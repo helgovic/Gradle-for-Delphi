@@ -200,6 +200,7 @@ begin
    MJars.Text := '';
    MAddJars.Text := '';
    MExclJars.Text := '';
+   MExclFinal.Text := '';
    MStatus.Text := '';
 
    LEJobName.Text := '';
@@ -261,8 +262,7 @@ begin
    end;
 
    if (Trim(MJars.Text) = '') and
-      ((Trim(MAddJars.Text) = '') or
-       (MAddJars.Lines.Count < 2))
+      (Trim(MAddJars.Text) = '')
    then
       begin
          ShowMessage('Please enter dependencies');
@@ -286,28 +286,21 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
-
          if ReadString(LEJobName.Text, 'Repositories', '') = ''
          then
             WriteString(LEJobName.Text, 'Repositories', 'mavenCentral()¤google()¤jcenter()');
-
          WriteString(LEJobName.Text, 'Dependensies', MemoStrToIniStr(MJars.Lines.Text));
          WriteString(LEJobName.Text, 'AddDependensies', MemoStrToIniStr(MAddJars.Lines.Text));
          WriteString(LEJobName.Text, 'Excludes', MemoStrToIniStr(MExclJars.Lines.Text));
          WriteString(LEJobName.Text, 'FinalExcludes', MemoStrToIniStr(MExclFinal.Lines.Text));
-
          if Pos(LEJobName.Text, CBProjJobs.Items.Text) = 0
          then
             CBProjJobs.Items.Add(LEJobName.Text);
-
          WriteString('Project', 'Jobs', MemoStrToIniStr(CBProjJobs.Items.Text));
-
          UpdateFile;
-
       finally
          Free;
       end;
-
    Result := True;
 
 end;
@@ -317,20 +310,15 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
-
          LEJobName.Text := JobNam;
-
          MJars.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'Dependensies', ''));
          MAddJars.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'AddDependensies', ''));
          MExclJars.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'Excludes', ''));
          MExclFinal.Lines.Text := IniStrToMemoStr(ReadString(LEJobName.Text, 'FinalExcludes', ''));
-
          CBProjJobs.Text := JobNam;
-
       finally
          Free;
       end;
-
 
 end;
 
@@ -347,7 +335,6 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
-
          CBProjJobs.Items.Text := IniStrToMemoStr(ReadString('Project', 'Jobs', ''));
 
          if CBProjJobs.Items.Count > 0
@@ -357,7 +344,6 @@ begin
       finally
          Free;
       end;
-
    with TRegIniFile.Create(REG_KEY) do
    try
       LEJ2OLoc.Text := ReadString(REG_BUILD_OPTIONS, 'Java2op Location', '');
@@ -426,24 +412,19 @@ begin
    then
       with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
          try
-
             DeleteKey(LEJobName.Text, 'Repositories');
             DeleteKey(LEJobName.Text, 'Dependensies');
             DeleteKey(LEJobName.Text, 'AddDependensies');
             DeleteKey(LEJobName.Text, 'Excludes');
-
             CBProjJobs.Items.Delete(CBProjJobs.Items.IndexOf(LEJobName.Text));
             CBProjJobs.ItemIndex := CBProjJobs.Items.Count - 1;
             CBProjJobsSelect(CBProjJobs);
 
             WriteString('Project', 'Jobs', MemoStrToIniStr(CBProjJobs.Items.Text));
-
             UpdateFile;
-
          finally
             Free;
          end;
-
 end;
 
 procedure TFGetJars.BGoClick(Sender: TObject);
@@ -497,14 +478,14 @@ begin
 
          with BorlandIDEServices as IOTAModuleServices do
             Modul := FindModule(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
-        try
-         if Assigned(Modul)
-         then
-            Modul.CloseModule(True);
+         try
+
+            if Assigned(Modul)
+            then
+               Modul.CloseModule(True);
 
          except
-         ShowException(ExceptObject, ExceptAddr);
-
+            ShowException(ExceptObject, ExceptAddr);
          end;
 
          if FileExists(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas')
@@ -525,7 +506,6 @@ begin
                finally
                   Free;
                end;
-
             FileLines.Add('repositories {');
 
             for i := 0 to Repos.Count - 1 do
