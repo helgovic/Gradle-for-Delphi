@@ -304,7 +304,7 @@ object FGetJars: TFGetJars
     TabOrder = 4
   end
   object BNewJob: TButton
-    Left = 644
+    Left = 642
     Top = 730
     Width = 117
     Height = 49

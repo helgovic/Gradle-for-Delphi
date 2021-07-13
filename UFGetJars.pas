@@ -471,21 +471,61 @@ begin
          LibsDir := ProjDir + 'GradLibs';
          TmpDir := ProjDir + 'GradTmp';
 
-         DeleteDirectory(LibsDir, False);
-         DeleteDirectory(TmpDir, False);
-         CreateDir(LibsDir);
-         CreateDir(TmpDir);
+         if DirectoryExists(LibsDir)
+         then
+            if not DeleteDirectory(LibsDir, False)
+            then
+               begin
+                  ShowMessage('There was an error deleting GradLibs Folder');
+                  Exit;
+               end;
 
-         with BorlandIDEServices as IOTAModuleServices do
-            Modul := FindModule(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+         if DirectoryExists(TmpDir)
+         then
+            if not DeleteDirectory(TmpDir, False)
+            then
+               begin
+                  ShowMessage('There was an error deleting GradTmp Folder');
+                  Exit;
+               end;
+
+         if not CreateDir(LibsDir)
+         then
+            begin
+               ShowMessage('There was an error creating GradLib Folder');
+               Exit;
+            end;
+
+         if not CreateDir(TmpDir)
+         then
+            begin
+               ShowMessage('There was an error creating GradTmp Folder');
+               Exit;
+            end;
+
          try
 
-            if Assigned(Modul)
-            then
-               Modul.CloseModule(True);
+            with BorlandIDEServices as IOTAModuleServices do
+               Modul := FindModule(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+
+            try
+
+               if Assigned(Modul)
+               then
+                  Modul.CloseModule(True);
+
+            except
+
+               ShowException(ExceptObject, ExceptAddr);
+               Exit;
+
+            end;
 
          except
+
             ShowException(ExceptObject, ExceptAddr);
+            Exit;
+
          end;
 
          if FileExists(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas')
@@ -506,6 +546,7 @@ begin
                finally
                   Free;
                end;
+
             FileLines.Add('repositories {');
 
             for i := 0 to Repos.Count - 1 do
@@ -652,12 +693,15 @@ begin
                   ExcludeFile := False;
 
                   for i := 0 to MExclJars.Lines.Count - 1 do
-                     if Pos(AnsiLowerCase(MExclJars.Lines[i]), AnsiLowerCase(FileList[x])) > 0
+                     if (MExclJars.Lines[i][1] <> '/') and
+                        (MExclJars.Lines[i][1] <> '¤')
                      then
-                        begin
-                           ExcludeFile := True;
-                           Break;
-                        end;
+                        if Pos(AnsiLowerCase(MExclJars.Lines[i]), AnsiLowerCase(FileList[x])) > 0
+                        then
+                           begin
+                              ExcludeFile := True;
+                              Break;
+                           end;
 
                   if ExcludeFile
                   then
@@ -712,6 +756,16 @@ begin
                DeleteFile(FileList[i]);
 
             FileLines.Clear;
+
+            for i := 0 to MExclJars.Lines.Count - 1 do
+               if MExclJars.Lines[i][1] = '/'
+               then
+                  DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  MExclJars.Lines[i]), False);
+
+            for i := 0 to MExclJars.Lines.Count - 1 do
+               if MExclJars.Lines[i][1] = '¤'
+               then
+                  DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  MExclJars.Lines[i]));
 
             FileLines.Add(ExtractFileDrive(LibsDir));
             FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
@@ -837,12 +891,15 @@ begin
                   ExcludeFile := False;
 
                   for i := 0 to MExclFinal.Lines.Count - 1 do
-                     if Pos(AnsiLowerCase(MExclFinal.Lines[i]), AnsiLowerCase(FileList[x])) > 0
+                     if (MExclFinal.Lines[i][1] <> '/') and
+                        (MExclFinal.Lines[i][1] <> '¤')
                      then
-                        begin
-                           ExcludeFile := True;
-                           Break;
-                        end;
+                        if Pos(AnsiLowerCase(MExclFinal.Lines[i]), AnsiLowerCase(FileList[x])) > 0
+                        then
+                           begin
+                              ExcludeFile := True;
+                              Break;
+                           end;
 
                   if ExcludeFile
                   then
@@ -900,6 +957,16 @@ begin
 
             FileLines.Clear;
 
+            for i := 0 to MExclFinal.Lines.Count - 1 do
+               if MExclFinal.Lines[i][1] = '/'
+               then
+                  DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  MExclFinal.Lines[i]), False);
+
+            for i := 0 to MExclFinal.Lines.Count - 1 do
+               if MExclFinal.Lines[i][1] = '¤'
+               then
+                  DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  MExclFinal.Lines[i]));
+
             FileLines.Add(ExtractFileDrive(LibsDir));
             FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
             FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
@@ -920,8 +987,141 @@ begin
                SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
             end);
 
-            DeleteFile(ProjDir + 'Libs\' + LEJobName.Text + '.jar');
+            if FileExists(ProjDir + 'Libs\' + LEJobName.Text + '.jar')
+            then
+               if not DeleteFile(ProjDir + 'Libs\' + LEJobName.Text + '.jar')
+               then
+                  begin
+                     ShowMessage('Could not delete ' + LibsDir + '\' + LEJobName.Text + '.jar.');
+                     Exit;
+                  end;
+
             MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(ProjDir + 'Libs\' + LEJobName.Text + '.jar'));
+
+            FileList := TDirectory.GetFiles(LibsDir, '*.so', TSearchOption.soAllDirectories);
+
+            if Length(FileList) > 0
+            then
+               begin
+
+                  if not DirectoryExists(ProjDir + 'Libs\SoFiles')
+                  then
+                     begin
+                        CreateDir(ProjDir + 'Libs\SoFiles');
+                        CreateDir(ProjDir + 'Libs\SoFiles\32');
+                        CreateDir(ProjDir + 'Libs\SoFiles\64');
+                     end;
+
+                  FileLines.LoadFromFile(GetCurrentProjectFileName);
+
+                  i := 0;
+
+                  while  (i < Filelines.Count) and (Pos('<Deployment Version="', FileLines[i]) = 0) do
+                     Inc(i);
+
+                  for x := 0 to High(FileList) do
+                     begin
+
+                        if Pos('armeabi-v7a', FileList[x]) > 0
+                        then
+                           begin
+
+                              if FileExists(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
+                              then
+                                 DeleteFile(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x]));
+
+                              CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x])), False);
+
+                              if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
+                              then
+                                begin
+
+                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    <Platform Name="Android">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    </Platform>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                </DeployFile>');
+
+                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    <Platform Name="Android">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    </Platform>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                </DeployFile>');
+
+                                end;
+
+                           end;
+
+                        if Pos('arm64-v8a', FileList[x]) > 0
+                        then
+                           begin
+
+                              if FileExists(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
+                              then
+                                 DeleteFile(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x]));
+
+                              CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x])), False);
+
+                              if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
+                              then
+                                begin
+
+                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    <Platform Name="Android64">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    </Platform>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                </DeployFile>');
+
+                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    <Platform Name="Android64">');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                    </Platform>');
+                                   Inc(i);
+                                   FileLines.Insert(i, '                </DeployFile>');
+
+                                end;
+
+                           end;
+
+                     end;
+
+                  FileLines.SaveToFile(GetCurrentProjectFileName);
+
+                  with BorlandIDEServices as IOTAModuleServices do
+                    FindModule(GetCurrentProjectFileName).Refresh(True);
+
+               end;
 
             FileList := TDirectory.GetFiles(LibsDir, '*.xml', TSearchOption.soAllDirectories);
 
