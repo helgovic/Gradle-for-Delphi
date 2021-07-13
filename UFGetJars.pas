@@ -1019,6 +1019,8 @@ begin
                   while  (i < Filelines.Count) and (Pos('<Deployment Version="', FileLines[i]) = 0) do
                      Inc(i);
 
+                  Inc(i);
+
                   for x := 0 to High(FileList) do
                      begin
 
