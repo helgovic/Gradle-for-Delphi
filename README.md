@@ -16,13 +16,22 @@ HOW TO USE:
 
 Enter the path of your Java2OP directory in the "Java2OP location" box.
 You have to edit the cache.txt in the Java2OP directory. if eks. you are downloading google play services, you have to remove those entries. 
-You also have disable the build in jars in your projects libs entries. You should avoid using buildin libs, except for FMX.jar.
+You also have to disable the build in jars in your projects libs entries. You should avoid using buildin libs, except for FMX.jar.
 
 In the "Dependencies" box, enter the libs you want to download (Copy eks. from maven repository Gradle link). 
 
 In the "Additional (Local) Dependencies" enter any local libs that is needed for this job.
 
-In the "Exclude when building JNI pas file" enter libs that is not to be processed by Java2OP. This can be a library that Java2OP cannot process (Hopefully you don't need to access it in your code).
+In the "Exclude when building JNI pas file" enter libs/directories/class's that are not to be processed by Java2OP. This can be content that Java2OP cannot process (Hopefully you don't need to access it in your code).
+
+In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be contents that are already included in another jar (job).  
+
+EXCLUSION PARAMETERS
+
+You can enter three types of parameters:
+1. Not prefixed (e.g. guana). This denotes jars/aars where string is contained in the file name. (Not case sensitive).
+2. Prefixed with / (e.g. /android\support\v4). Denotes a directory of classes, that are to be excluded. (Case sensitive).
+3. Prefixed with ¤ (e. g. ¤com\google\android\exoplayer2\source\CompositeMediaSource$ForwardingEventListener.class). Denotes single class that is to be excluded. (Case sensitive).
 
 In the "Job name" box enter a jobname. This will name the jar and JNI files.
 
