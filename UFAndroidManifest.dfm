@@ -45,57 +45,52 @@ object FManifest: TFManifest
     TabOrder = 3
     WordWrap = False
   end
-  object BDissMiss: TPanel
+  object BDissMiss: TButton
     Left = 85
     Top = 234
     Width = 117
     Height = 49
     Caption = 'Dismiss'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 2
     ParentFont = False
     TabOrder = 0
-    TabStop = True
     OnClick = BDissMissClick
   end
-  object BSaveToClipb: TPanel
-    Left = 204
+  object BSaveToClipb: TButton
+    Left = 206
     Top = 234
     Width = 117
     Height = 49
     Caption = 'Save To Clipboard'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 8
     ParentFont = False
     TabOrder = 1
-    TabStop = True
     OnClick = BSaveToClipbClick
   end
-  object BAddManifest: TPanel
+  object BAddManifest: TButton
     Left = 327
     Top = 234
     Width = 117
     Height = 49
-    Caption = 'Add to manifest'
-    Color = clBlack
+    Caption = 'Insert into Android manifest template'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 1
     ParentFont = False
     TabOrder = 2
-    TabStop = True
+    WordWrap = True
   end
 end

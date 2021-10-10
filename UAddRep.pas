@@ -9,8 +9,8 @@ uses
 type
   TFAddRep = class(TForm)
     LERepository: TLabeledEdit;
-    BOK: TPanel;
-    BCancel: TPanel;
+    BOK: TButton;
+    BCancel: TButton;
     procedure FormShow(Sender: TObject);
     procedure BOKClick(Sender: TObject);
     procedure BCancelClick(Sender: TObject);

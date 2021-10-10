@@ -11,9 +11,9 @@ type
   TFManifest = class(TForm)
     Label3: TLabel;
     MAndrMan: TMemo;
-    BDissMiss: TPanel;
-    BSaveToClipb: TPanel;
-    BAddManifest: TPanel;
+    BDissMiss: TButton;
+    BSaveToClipb: TButton;
+    BAddManifest: TButton;
     procedure BSaveToClipbClick(Sender: TObject);
     procedure BDissMissClick(Sender: TObject);
   private

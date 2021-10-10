@@ -1,3 +1,6 @@
+// JCL_DEBUG_EXPERT_GENERATEJDBG OFF
+// JCL_DEBUG_EXPERT_INSERTJDBG OFF
+// JCL_DEBUG_EXPERT_DELETEMAPFILE OFF
 package GetJars;
 
 {$R *.res}
@@ -30,17 +33,16 @@ package GetJars;
 
 requires
   DesignIDE,
-  rtl,
   Jcl,
   tmsdXE7,
-  tmsexdXE7,
-  vclwinx;
+  tmsexdXE7;
 
 contains
   UGetJars in 'UGetJars.pas',
   UFGetJars in 'UFGetJars.pas' {FGetJars},
   UFAndroidManifest in 'UFAndroidManifest.pas' {FManifest},
   UFRepositories in 'UFRepositories.pas' {FRepositories},
-  UAddRep in 'UAddRep.pas' {FAddRep};
+  UAddRep in 'UAddRep.pas' {FAddRep},
+  MyZip in 'MyZip.pas';
 
 end.

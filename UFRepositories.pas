@@ -11,9 +11,9 @@ type
   TFRepositories = class(TForm)
     CLBRepositories: TCheckListBox;
     Label1: TLabel;
-    BCancel: TPanel;
-    BOK: TPanel;
-    BAddRepos: TPanel;
+    BCancel: TButton;
+    BOK: TButton;
+    BAddRepos: TButton;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -114,9 +114,7 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
-
          ProjRep.DelimitedText := ReadString(FGetJars.LEJobName.Text, 'Repositories', '');
-
          for i := 0 to ProjRep.Count - 1 do
             for x := 0 to CLBRepositories.Count - 1 do
                if ProjRep[i] = CLBRepositories.Items[x]
@@ -126,7 +124,6 @@ begin
       finally
          Free;
       end;
-
       ProjRep.Free;
 
 end;

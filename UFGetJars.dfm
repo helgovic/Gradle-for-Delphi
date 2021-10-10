@@ -45,9 +45,9 @@ object FGetJars: TFGetJars
   object Label3: TLabel
     Left = 530
     Top = 221
-    Width = 231
+    Width = 257
     Height = 13
-    Caption = 'Exlude from final jar (included in other jar (job) )'
+    Caption = 'Exlude from final jar (test/compile time dependencies)'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
@@ -259,11 +259,11 @@ object FGetJars: TFGetJars
     ThumbColor = clGreen
   end
   object BGo: TButton
-    Left = 281
+    Left = 221
     Top = 730
     Width = 117
     Height = 49
-    Caption = 'Go'
+    Caption = 'Create JNI pas file'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
@@ -274,7 +274,7 @@ object FGetJars: TFGetJars
     OnClick = BGoClick
   end
   object BAddRep: TButton
-    Left = 402
+    Left = 342
     Top = 730
     Width = 117
     Height = 49
@@ -289,7 +289,7 @@ object FGetJars: TFGetJars
     OnClick = BAddRepClick
   end
   object BClose: TButton
-    Left = 160
+    Left = 100
     Top = 730
     Width = 117
     Height = 49
@@ -304,7 +304,7 @@ object FGetJars: TFGetJars
     TabOrder = 4
   end
   object BNewJob: TButton
-    Left = 642
+    Left = 584
     Top = 730
     Width = 117
     Height = 49
@@ -319,7 +319,7 @@ object FGetJars: TFGetJars
     OnClick = BNewJobClick
   end
   object BSave: TButton
-    Left = 523
+    Left = 463
     Top = 730
     Width = 117
     Height = 49
@@ -334,7 +334,7 @@ object FGetJars: TFGetJars
     OnClick = BSaveClick
   end
   object BDelete: TButton
-    Left = 765
+    Left = 705
     Top = 730
     Width = 117
     Height = 49
@@ -349,8 +349,8 @@ object FGetJars: TFGetJars
     OnClick = BDeleteClick
   end
   object MStatus: TMemo
-    Left = 15
-    Top = 428
+    Left = 16
+    Top = 429
     Width = 1014
     Height = 159
     Color = 3288877
@@ -363,5 +363,20 @@ object FGetJars: TFGetJars
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 15
+  end
+  object BCompileAll: TButton
+    Left = 826
+    Top = 730
+    Width = 117
+    Height = 49
+    Caption = 'Compile project jar'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 16
+    OnClick = BCompileAllClick
   end
 end

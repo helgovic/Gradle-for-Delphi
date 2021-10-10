@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, AdvSmoothProgressBar, AdvSmoothButton,
   Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls,
-  System.Zip, System.IOUtils, JclFileUtils,
+  MyZip, System.IOUtils, JclFileUtils,
   Vcl.ComCtrls, Vcl.WinXCtrls;
 
 type
@@ -33,6 +33,7 @@ type
     BDelete: TButton;
     MStatus: TMemo;
     Label6: TLabel;
+    BCompileAll: TButton;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -40,6 +41,7 @@ type
     procedure BNewJobClick(Sender: TObject);
     procedure BAddRepClick(Sender: TObject);
     procedure BDeleteClick(Sender: TObject);
+    procedure BCompileAllClick(Sender: TObject);
   private
     procedure ExecOut(const Text: string);
     procedure LoadJob(JobNam: String);
@@ -69,6 +71,30 @@ uses
 
 var
    FileLines: TStringList;
+
+function RemoveComm(InString: String; var OutString: String): Boolean;
+begin
+
+   if Trim(Instring).StartsWith('//')
+   then
+      begin
+         Result := False;
+         Exit;
+      end;
+
+   if Pos('//', Instring) > 0
+   then
+      OutString := Trim(StrBefore('//', Instring))
+   else
+      OutString := InString;
+
+   if Trim(OutString) = ''
+   then
+      Result := False
+   else
+      Result := True;
+
+end;
 
 function IniStrToMemoStr(InStr: string): string;
 begin
@@ -335,6 +361,7 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
+
          CBProjJobs.Items.Text := IniStrToMemoStr(ReadString('Project', 'Jobs', ''));
 
          if CBProjJobs.Items.Count > 0
@@ -344,6 +371,7 @@ begin
       finally
          Free;
       end;
+
    with TRegIniFile.Create(REG_KEY) do
    try
       LEJ2OLoc.Text := ReadString(REG_BUILD_OPTIONS, 'Java2op Location', '');
@@ -405,6 +433,1038 @@ begin
 
 end;
 
+procedure TFGetJars.BCompileAllClick(Sender: TObject);
+begin
+
+   BClose.Enabled := False;
+   BGo.Enabled := False;
+   BAddRep.Enabled := False;
+   BNewJob.Enabled := False;
+   BSave.Enabled := False;
+   BDelete.Enabled := False;
+   BCompileAll.Enabled := False;
+
+   TThread.CreateAnonymousThread(
+   procedure
+
+   var
+      x, i, y, z: Integer;
+      FileList: TArray<String>;
+      zipFile: TZipFile;
+      ManifestLines, Repos: TStringList;
+      ProjDir, LibsDir, TmpDir: String;
+      ExcludeFile: Boolean;
+      Modul: IOTAModule;
+      NestLevel: integer;
+      Header: integer;
+      Found: Boolean;
+      TmpStr, TmpStr2: String;
+      Jobs, SLJars, SLAddJars, SLExclJars, CopyFiles: TStringList;
+
+   begin
+
+      FileLines := TStringList.Create;
+
+      Jobs := TStringList.Create;
+      SLJars := TStringList.Create;
+      SLAddJars := TStringList.Create;
+      SLExclJars := TStringList.Create;
+
+      try
+
+         ProjDir := ExtractFilePath(GetCurrentProjectFileName);
+         LibsDir := ProjDir + 'GradLibs';
+         TmpDir := ProjDir + 'GradTmp';
+
+         if DirectoryExists(LibsDir)
+         then
+            if not DeleteDirectory(LibsDir, False)
+            then
+               begin
+                  ShowMessage('There was an error deleting GradLibs Folder');
+                  Exit;
+               end;
+
+         if DirectoryExists(TmpDir)
+         then
+            if not DeleteDirectory(TmpDir, False)
+            then
+               begin
+                  ShowMessage('There was an error deleting GradTmp Folder');
+                  Exit;
+               end;
+
+         if not CreateDir(LibsDir)
+         then
+            begin
+               ShowMessage('There was an error creating GradLib Folder');
+               Exit;
+            end;
+
+         if not CreateDir(TmpDir)
+         then
+            begin
+               ShowMessage('There was an error creating GradTmp Folder');
+               Exit;
+            end;
+
+         Repos := TStringList.Create;
+         Repos.Delimiter := '¤';
+         Repos.StrictDelimiter := True;
+
+         with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
+            try
+               Repos.DelimitedText := ReadString(LEJobName.Text, 'Repositories', '');
+            finally
+               Free;
+            end;
+
+         FileLines.Add('repositories {');
+
+         for i := 0 to Repos.Count - 1 do
+            FileLines.Add('        ' + Repos[i]);
+
+         Repos.Free;
+
+         FileLines.Add('}');
+         FileLines.Add('configurations {');
+         FileLines.Add('');
+         FileLines.Add('    myConfig');
+         FileLines.Add('}');
+         FileLines.Add('');
+         FileLines.Add('dependencies {');
+
+         TThread.Synchronize(TThread.CurrentThread,
+         procedure
+         begin
+            MStatus.Text := 'Building Gradle';
+            MStatus.Lines.Add('');
+         end);
+
+         with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
+            begin
+
+               Jobs.Text := IniStrToMemoStr(ReadString('Project', 'Jobs', ''));
+
+               for i := 0 to Jobs.count - 1 do
+                  begin
+
+                     SLJars.Text := IniStrToMemoStr(ReadString(Jobs[i], 'Dependensies', ''));
+
+                     for x := 0 to SLJars.count - 1 do
+                        begin
+
+                           if not RemoveComm(SLJars[x], TmpStr)
+                           then
+                              Continue;
+
+                           ExcludeFile := False;
+
+                           for z := 0 to Jobs.count - 1 do
+                              begin
+
+                                 SLExclJars.Text := IniStrToMemoStr(ReadString(Jobs[z], 'FinalExcludes', ''));
+
+                                 for y := 0 to SLExclJars.count - 1 do
+                                    begin
+
+                                       if not RemoveComm(SLExclJars[y], TmpStr2)
+                                       then
+                                          Continue;
+
+                                       if (TmpStr2[1] <> '/') and
+                                          (TmpStr2[1] <> '¤')
+                                       then
+                                          if Pos(AnsiLowerCase(TmpStr2), AnsiLowerCase(FileList[x])) > 0
+                                          then
+                                             begin
+                                                ExcludeFile := True;
+                                                Break;
+                                             end;
+
+                                    end;
+
+                              end;
+
+                           if ExcludeFile
+                           then
+                              Continue;
+
+                           FileLines.Add('    myConfig ' + TmpStr);
+
+                        end;
+
+                  end;
+
+               FileLines.Add('');
+               FileLines.Add('}');
+               FileLines.Add('');
+               FileLines.Add('task getDeps(type: Copy) {');
+               FileLines.Add('    from configurations.myConfig');
+               FileLines.Add('    into ''' + StringReplace(LibsDir, '\', '/', [rfReplaceAll]) + '''');
+               FileLines.Add('}');
+
+               FileLines.SaveToFile(TmpDir + '\Build.gradle');
+
+               FileLines.Clear;
+
+               FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+               FileLines.Add('cd "' + TmpDir + '"');
+               FileLines.Add('Gradle');
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
+                  begin
+                     ShowMessage('There was an error running Gradle on Build.gradle. Please check Output');
+                     Exit;
+                  end;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add('');
+                  MStatus.Lines.Add('Running Task GetDeps');
+                  MStatus.Lines.Add('');
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+               end);
+
+               FileLines.DisposeOf;
+               FileLines := TStringList.Create;
+               FileLines.Clear;
+
+               FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+               FileLines.Add('cd "' + TmpDir + '"');
+               FileLines.Add('Gradle -q getDeps');
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
+                  begin
+                     ShowMessage('There was an error running download task. Please check Output');
+                     Exit;
+                  end;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add('');
+                  MStatus.Lines.Add('Libraries downloaded');
+                  MStatus.Lines.Add('');
+                  MStatus.Lines.Add('Copying Additional dependensies');
+                  MStatus.Lines.Add('');
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+               end);
+
+               CopyFiles := TStringList.Create;
+
+               for i := 0 to Jobs.count - 1 do
+                  begin
+
+                     SLAddJars.Text := IniStrToMemoStr(ReadString(Jobs[i], 'AddDependensies', ''));
+
+                     for x := 0 to SLAddJars.count - 1 do
+                        begin
+
+                           if not RemoveComm(SLAddJars[x], TmpStr)
+                           then
+                              Continue;
+
+                           CopyFiles.Add(TmpStr);
+
+                        end;
+
+                  end;
+
+               ASPB.Max := CopyFiles.Count;
+               ASPB.Position := 0;
+
+               for x := 0 to CopyFiles.Count - 1 do
+                  begin
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        MStatus.Lines.Add('Copying: ' + CopyFiles[x]);
+                        MStatus.Lines.Add('');
+                        SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                     end);
+
+                     if not CopyFile(PChar(CopyFiles[x]), PChar(LibsDir + '\' + EXtractFileName(CopyFiles[x])), False)
+                     then
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           MStatus.Lines.Add('Error copying: ' + CopyFiles[x]);
+                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                           Exit;
+                        end);
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        ASPB.Position := x + 1;
+                     end);
+
+                  end;
+
+               CopyFiles.DisposeOf;
+
+               FileList := TDirectory.GetFiles(LibsDir, '*.aar', TSearchOption.soTopDirectoryOnly);
+
+               ASPB.Max := Length(FileList);
+
+               zipFile := TZipFile.Create;
+
+               for x := 0 to High(FileList) do
+                  if zipFile.IsValid(FileList[x])
+                  then
+                     begin
+
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                           MStatus.Lines.Add('');
+                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                        end);
+
+                        try
+                           zipFile.Open(FileList[x], zmRead);
+                           zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
+                        except
+                           ShowException(ExceptObject, ExceptAddr);
+                        end;
+
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           ASPB.Position := x + 1;
+                        end);
+
+                     end;
+
+               FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
+
+               ASPB.Max := Length(FileList);
+
+               for x := 0 to High(FileList) do
+                  begin
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                        MStatus.Lines.Add('');
+                        SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                     end);
+
+                     if zipFile.IsValid(FileList[x])
+                     then
+                        begin
+
+                           try
+                              zipFile.Open(FileList[x], zmRead);
+                              zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
+                           except
+                              ShowException(ExceptObject, ExceptAddr);
+                           end;
+
+                        end;
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        ASPB.Position := x + 1;
+                     end);
+
+                  end;
+
+               zipFile.Close;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add('Classes Extracted');
+                  MStatus.Lines.Add('');
+                  MStatus.Lines.Add('Creating ' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar');
+                  MStatus.Lines.Add('');
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+               end);
+
+               for i := 0 to Jobs.count - 1 do
+                  begin
+
+                     SLExclJars.Text := IniStrToMemoStr(ReadString(Jobs[i], 'FinalExcludes', ''));
+
+                     for x := 0 to SLExclJars.count - 1 do
+                        begin
+
+                           if not RemoveComm(SLExclJars[x], TmpStr)
+                           then
+                              Continue;
+
+                           if TmpStr[1] = '/'
+                           then
+                              DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  TmpStr), False);
+
+                        end;
+
+                     for x := 0 to SLExclJars.count - 1 do
+                        begin
+
+                           if not RemoveComm(SLExclJars[x], TmpStr)
+                           then
+                              Continue;
+
+                           if TmpStr[1] = '¤'
+                           then
+                              DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  TmpStr));
+
+                        end;
+
+                  end;
+
+               FileList := TDirectory.GetFiles(LibsDir + '\ExtractedClasses', '*.*', TSearchOption.soTopDirectoryOnly);
+
+               for i := 0 to High(FileList) do
+                  DeleteFile(FileList[i]);
+
+               FileLines.DisposeOf;
+               FileLines := TStringList.Create;
+
+               FileLines.Add(ExtractFileDrive(LibsDir));
+               FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
+               FileLines.Add('jar -cf ' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar *');
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
+                  begin
+                     ShowMessage('There was an error creating' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar. Please check Output');
+                     Exit;
+                  end;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add(StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar Created');
+                  MStatus.Lines.Add('');
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+               end);
+
+               if FileExists(ProjDir + 'Libs\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar')
+               then
+                  if not DeleteFile(ProjDir + 'Libs\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar')
+                  then
+                     begin
+                        ShowMessage('Could not delete ' + LibsDir + '\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar.');
+                        Exit;
+                     end;
+
+               if not CopyFile(PChar(LibsDir + '\ExtractedClasses\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar'), PChar(ProjDir + 'Libs\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar'), True)
+               then
+                  TThread.Synchronize(TThread.CurrentThread,
+                  procedure
+                  begin
+                     MStatus.Lines.Add('Error copying: ' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar');
+                     SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                     Exit;
+                  end);
+
+              if not FoundInFile(GetCurrentProjectFileName, '<JavaReference Include="Libs\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar">')
+              then
+                 begin
+
+                    FileLines.DisposeOf;
+                    FileLines := TStringList.Create;
+                    FileLines.LoadFromFile(GetCurrentProjectFileName);
+
+                    i := 0;
+
+                    while  (i < Filelines.Count) and (Pos('<BuildConfiguration Include="Release">', FileLines[i]) = 0) do
+                       Inc(i);
+
+                    FileLines.Insert(i, '<JavaReference Include="Libs\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar">');
+                    Inc(i);
+                    FileLines.Insert(i, '<ContainerId>ClassesdexFile64</ContainerId>');
+                    Inc(i);
+                    FileLines.Insert(i, ' <Disabled/>');
+                    Inc(i);
+                    FileLines.Insert(i, '</JavaReference>');
+
+                    FileLines.SaveToFile(GetCurrentProjectFileName);
+
+                    with BorlandIDEServices as IOTAModuleServices do
+                       FindModule(GetCurrentProjectFileName).Refresh(True);
+
+                 end;
+
+               FileList := TDirectory.GetFiles(LibsDir, '*.so', TSearchOption.soAllDirectories);
+
+               if Length(FileList) > 0
+               then
+                  begin
+
+                     if not DirectoryExists(ProjDir + 'Libs\SoFiles')
+                     then
+                        begin
+                           CreateDir(ProjDir + 'Libs\SoFiles');
+                           CreateDir(ProjDir + 'Libs\SoFiles\32');
+                           CreateDir(ProjDir + 'Libs\SoFiles\64');
+                        end;
+
+                     FileLines.DisposeOf;
+                     FileLines := TStringList.Create;
+                     FileLines.LoadFromFile(GetCurrentProjectFileName);
+
+                     i := 0;
+
+                     while  (i < Filelines.Count) and (Pos('<Deployment Version="', FileLines[i]) = 0) do
+                        Inc(i);
+
+                     Inc(i);
+
+                     for x := 0 to High(FileList) do
+                        begin
+
+                           if Pos('armeabi-v7a', FileList[x]) > 0
+                           then
+                              begin
+
+                                 if FileExists(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
+                                 then
+                                    DeleteFile(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x]));
+
+                                 CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x])), False);
+
+                                 if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
+                                 then
+                                   begin
+
+                                      FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    <Platform Name="Android">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    </Platform>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                </DeployFile>');
+                                      Inc(i);
+
+                                      FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    <Platform Name="Android">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    </Platform>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                </DeployFile>');
+                                      Inc(i);
+
+                                   end;
+
+                              end;
+
+                           if Pos('arm64-v8a', FileList[x]) > 0
+                           then
+                              begin
+
+                                 if FileExists(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
+                                 then
+                                    DeleteFile(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x]));
+
+                                 CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x])), False);
+
+                                 if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
+                                 then
+                                   begin
+
+                                      FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    <Platform Name="Android64">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    </Platform>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                </DeployFile>');
+                                      Inc(i);
+
+                                      FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    <Platform Name="Android64">');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                    </Platform>');
+                                      Inc(i);
+                                      FileLines.Insert(i, '                </DeployFile>');
+                                      Inc(i);
+
+                                   end;
+
+                              end;
+
+                        end;
+
+                     FileLines.SaveToFile(GetCurrentProjectFileName);
+
+                     with BorlandIDEServices as IOTAModuleServices do
+                       FindModule(GetCurrentProjectFileName).Refresh(True);
+
+                  end;
+
+               FileList := TDirectory.GetFiles(LibsDir, '*.xml', TSearchOption.soAllDirectories);
+
+               ManifestLines := TStringList.Create;
+
+               ASPB.Max := Length(FileList);
+               ASPB.Position := 0;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  FManifest.MAndrMan.Text := '';;
+               end);
+
+               for x := 0 to High(FileList) do
+                  begin
+
+                     if AnsiLowerCase(ExtractFileName(FileList[x])) <> 'androidmanifest.xml'
+                     then
+                        begin
+
+                           TThread.Synchronize(TThread.CurrentThread,
+                           procedure
+                           begin
+                              ASPB.Position := x + 1;
+                           end);
+
+                           Continue;
+
+                        end
+                     else
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                           MStatus.Lines.Add('');
+                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+                        end);
+
+                     ManifestLines.DisposeOf;
+                     ManifestLines := TStringList.Create;
+                     ManifestLines.LoadFromFile(FileList[x]);
+
+                     i := 0;
+
+                     while (i <= ManifestLines.Count - 1) and (Pos('<application', ManifestLines[i]) = 0) do
+                        Inc(i);
+
+                     if i = ManifestLines.Count - 1
+                     then
+                        Continue;
+
+                     Inc(i);
+
+                     while (i <= ManifestLines.Count - 1) and (Pos('</application', ManifestLines[i]) = 0) do
+                        begin
+
+                           if Pos('</manifest>', ManifestLines[i]) > 0
+                           then
+                              Break;
+
+                           TThread.Synchronize(TThread.CurrentThread,
+                           procedure
+                           begin
+                              FManifest.MAndrMan.Lines.Add(ManifestLines[i]);
+                           end);
+
+                           Inc(i);
+
+                        end;
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        ASPB.Position := x + 1;
+                     end);
+
+                  end;
+
+               ManifestLines.DisposeOf;
+
+               if FManifest.MAndrMan.Lines.Count > 0
+               then
+                  TThread.Synchronize(TThread.CurrentThread,
+                  procedure
+
+                  var
+                     x: integer;
+
+                  begin
+
+                     if FManifest.ShowModal = mrOK
+                     then
+                        begin
+
+                           FileLines.DisposeOf;
+                           FileLines := TStringList.Create;
+                           FileLines.LoadFromFile(ProjDir + 'AndroidManifest.template.xml');
+
+                           i := -1;
+
+                           while i <= FManifest.MAndrMan.Lines.Count - 1 do
+                              begin
+
+                                 Inc(i);
+
+                                 if Pos('<activity', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       Header := PosHeader('%receivers%');
+                                       FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                       Inc(Header);
+
+                                       if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                       then
+                                          begin
+
+                                             Inc(i);
+
+                                             NestLevel := 1;
+
+                                             while NestLevel > 0 do
+                                                begin
+
+                                                   FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                                   Inc(Header);
+
+                                                   if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                                   then
+                                                      Inc(NestLevel);
+
+                                                   if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
+                                                   then
+                                                      Dec(NestLevel);
+
+                                                   if NestLevel > 0
+                                                   then
+                                                      Inc(i);
+
+                                                end;
+
+                                             continue;
+
+                                          end;
+
+                                    end;
+
+                                 if Pos('<service', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       Header := PosHeader('%activity%');
+                                       FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                       Inc(Header);
+
+                                       if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                       then
+                                          begin
+
+                                             Inc(i);
+
+                                             NestLevel := 1;
+
+                                             while NestLevel > 0 do
+                                                begin
+
+                                                   FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                                   Inc(Header);
+
+                                                   if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                                   then
+                                                      Inc(NestLevel);
+
+                                                   if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
+                                                   then
+                                                      Dec(NestLevel);
+
+                                                   if NestLevel > 0
+                                                   then
+                                                      Inc(i);
+
+                                                end;
+
+                                             continue;
+
+                                          end;
+
+                                    end;
+
+                                 if Pos('<meta-data', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       Header := PosHeader('<%services%>');
+                                       FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                       Inc(Header);
+
+                                       if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                       then
+                                          begin
+
+                                             Inc(i);
+
+                                             NestLevel := 1;
+
+                                             while NestLevel > 0 do
+                                                begin
+
+                                                   FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                                   Inc(Header);
+
+                                                   if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                                   then
+                                                      Inc(NestLevel);
+
+                                                   if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
+                                                   then
+                                                      Dec(NestLevel);
+
+                                                   if NestLevel > 0
+                                                   then
+                                                      Inc(i);
+
+                                                end;
+
+                                             continue;
+
+                                          end;
+
+                                    end;
+
+                                 if Pos('<provider', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       Header := PosHeader('</application>');
+                                       FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                       Inc(Header);
+
+                                       if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                       then
+                                          begin
+
+                                             Inc(i);
+
+                                             NestLevel := 1;
+
+                                             while NestLevel > 0 do
+                                                begin
+
+                                                   FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                                   Inc(Header);
+
+                                                   if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                                   then
+                                                      Inc(NestLevel);
+
+                                                   if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
+                                                   then
+                                                      Dec(NestLevel);
+
+                                                   if NestLevel > 0
+                                                   then
+                                                      Inc(i);
+
+                                                end;
+
+                                             continue;
+
+                                          end;
+
+                                    end;
+
+                                 if Pos('<receiver', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       Header := PosHeader('</application>');
+                                       FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                       Inc(Header);
+
+                                       if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                       then
+                                          begin
+
+                                             Inc(i);
+
+                                             NestLevel := 1;
+
+                                             while NestLevel > 0 do
+                                                begin
+
+                                                   FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                                   Inc(Header);
+
+                                                   if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
+                                                   then
+                                                      Inc(NestLevel);
+
+                                                   if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
+                                                      (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
+                                                   then
+                                                      Dec(NestLevel);
+
+                                                   if NestLevel > 0
+                                                   then
+                                                      Inc(i);
+
+                                                end;
+
+                                             continue;
+
+                                          end;
+
+                                    end;
+
+                                 if Pos('<uses-permission', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+                                       Header := PosHeader('<application');
+                                       FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
+                                       continue;
+                                    end;
+
+                                 if Pos('<!--', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       while Pos('-->', FManifest.MAndrMan.Lines[i]) = 0 do
+                                          Inc(i);
+
+                                       continue;
+
+                                    end;
+
+                                 if Pos('android:', FManifest.MAndrMan.Lines[i]) > 0
+                                 then
+                                    begin
+
+                                       Found := False;
+
+                                       x := PosHeader('<application');
+
+                                       while Pos('>', FileLines[x]) = 0 do
+                                          if Pos(Trim(FManifest.MAndrMan.Lines[i]), FileLines[x]) > 0
+                                          then
+                                             begin
+                                                Found := True;
+                                                Break;
+                                             end
+                                          else
+                                             Inc(x);
+
+                                       if Found
+                                       then
+                                          Continue;
+
+                                       if (Pos('android:persistent', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:restoreAnyVersion', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:label', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:restoreAnyVersion', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:debuggable', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:largeHeap', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:icon', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:theme', FManifest.MAndrMan.Lines[i]) = 0) and
+                                          (Pos('android:hardwareAccelerated', FManifest.MAndrMan.Lines[i]) = 0)
+                                       then
+                                          begin
+
+                                             x := PosHeader('<application');
+
+                                             while Pos('>', FileLines[x]) = 0 do
+                                                Inc(x);
+
+                                             FileLines[x] := StringReplace(FileLines[x], '>', '', []);
+                                             FileLines.Insert(x + 1, StringReplace(FManifest.MAndrMan.Lines[i], '>', '', []) + '>');
+                                             continue;
+
+                                          end;
+
+                                    end;
+                              end;
+
+                           FileLines.SaveToFile(ProjDir + 'AndroidManifest.template.xml');
+
+                        end;
+
+                  end);
+
+               DeleteDirectory(TmpDir, False);
+
+               if TSKeepLibs.State = tssOff
+               then
+                  DeleteDirectory(LibsDir, False);
+
+            end;
+
+      finally
+
+         BClose.Enabled := True;
+         BGo.Enabled := True;
+         BAddRep.Enabled := True;
+         BNewJob.Enabled := True;
+         BSave.Enabled := True;
+         BDelete.Enabled := True;
+         BCompileAll.Enabled := True;
+         Jobs.DisposeOf;
+         SLJars.DisposeOf;
+         SLAddJars.DisposeOf;
+         CopyFiles.DisposeOf;
+         FileLines.DisposeOf;
+
+      end;
+
+   end).Start;
+
+end;
+
 procedure TFGetJars.BDeleteClick(Sender: TObject);
 begin
 
@@ -440,6 +1500,7 @@ begin
    BNewJob.Enabled := False;
    BSave.Enabled := False;
    BDelete.Enabled := False;
+   BCompileAll.Enabled := False;
 
    TThread.CreateAnonymousThread(
    procedure
@@ -455,6 +1516,7 @@ begin
       NestLevel: integer;
       Header: integer;
       Found: Boolean;
+      TmpStr: String;
 
    begin
 
@@ -563,7 +1625,15 @@ begin
             FileLines.Add('dependencies {');
 
             for i := 0 to MJars.Lines.Count - 1 do
-               FileLines.Add('    myConfig ' + MJars.Lines[i]);
+               begin
+
+                  if not RemoveComm(MJars.Lines[i], TmpStr)
+                  then
+                     Continue;
+
+                  FileLines.Add('    myConfig ' + TmpStr);
+
+               end;
 
             FileLines.Add('');
             FileLines.Add('}');
@@ -595,8 +1665,11 @@ begin
                MStatus.Lines.Add('');
                MStatus.Lines.Add('Running Task GetDeps');
                MStatus.Lines.Add('');
+               SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
             end);
 
+            FileLines.DisposeOf;
+            FileLines := TStringList.Create;
             FileLines.Clear;
 
             FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
@@ -619,6 +1692,7 @@ begin
                MStatus.Lines.Add('');
                MStatus.Lines.Add('Copying Additional dependensies');
                MStatus.Lines.Add('');
+               SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
             end);
 
             ASPB.Max := MAddJars.Lines.Count;
@@ -627,15 +1701,19 @@ begin
             for i := 0 to MAddJars.Lines.Count - 1 do
                begin
 
+                  if not RemoveComm(MAddJars.Lines[i], TmpStr)
+                  then
+                     Continue;
+
                   TThread.Synchronize(TThread.CurrentThread,
                   procedure
                   begin
-                     MStatus.Lines.Add('Copying: ' + MAddJars.Lines[i]);
+                     MStatus.Lines.Add('Copying: ' + TmpStr);
                      MStatus.Lines.Add('');
                      SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
                   end);
 
-                  if not CopyFile(PChar(MAddJars.Lines[i]), PChar(LibsDir + '\' + EXtractFileName(MAddJars.Lines[i])), False)
+                  if not CopyFile(PChar(TmpStr), PChar(LibsDir + '\' + EXtractFileName(TmpStr)), False)
                   then
                      TThread.Synchronize(TThread.CurrentThread,
                      procedure
@@ -672,8 +1750,12 @@ begin
                         SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
                      end);
 
-                     zipFile.Open(FileList[x], zmRead);
-                     zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
+                     try
+                        zipFile.Open(FileList[x], zmRead);
+                        zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
+                     except
+                        ShowException(ExceptObject, ExceptAddr);
+                     end;
 
                      TThread.Synchronize(TThread.CurrentThread,
                      procedure
@@ -693,15 +1775,23 @@ begin
                   ExcludeFile := False;
 
                   for i := 0 to MExclJars.Lines.Count - 1 do
-                     if (MExclJars.Lines[i][1] <> '/') and
-                        (MExclJars.Lines[i][1] <> '¤')
-                     then
-                        if Pos(AnsiLowerCase(MExclJars.Lines[i]), AnsiLowerCase(FileList[x])) > 0
+                     begin
+
+                        if not RemoveComm(MExclJars.Lines[i], TmpStr)
                         then
-                           begin
-                              ExcludeFile := True;
-                              Break;
-                           end;
+                           Continue;
+
+                        if (TmpStr[1] <> '/') and
+                           (TmpStr[1] <> '¤')
+                        then
+                           if Pos(AnsiLowerCase(TmpStr), AnsiLowerCase(FileList[x])) > 0
+                           then
+                              begin
+                                 ExcludeFile := True;
+                                 Break;
+                              end;
+
+                     end;
 
                   if ExcludeFile
                   then
@@ -719,8 +1809,12 @@ begin
                   then
                      begin
 
-                        zipFile.Open(FileList[x], zmRead);
-                        zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
+                        try
+                           zipFile.Open(FileList[x], zmRead);
+                           zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
+                        except
+                           ShowException(ExceptObject, ExceptAddr);
+                        end;
 
                      end;
 
@@ -731,6 +1825,8 @@ begin
                   end);
 
                end;
+
+            zipFile.Close;
 
             TThread.Synchronize(TThread.CurrentThread,
             procedure
@@ -755,17 +1851,34 @@ begin
             for i := 0 to High(FileList) do
                DeleteFile(FileList[i]);
 
-            FileLines.Clear;
+            FileLines.DisposeOf;
+            FileLines := TStringList.Create;
 
             for i := 0 to MExclJars.Lines.Count - 1 do
-               if MExclJars.Lines[i][1] = '/'
-               then
-                  DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  MExclJars.Lines[i]), False);
+               begin
+
+                  if not RemoveComm(MExclJars.Lines[i], TmpStr)
+                  then
+                     Continue;
+
+                  if TmpStr[1] = '/'
+                  then
+                     DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  TmpStr), False);
+
+               end;
 
             for i := 0 to MExclJars.Lines.Count - 1 do
-               if MExclJars.Lines[i][1] = '¤'
-               then
-                  DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  MExclJars.Lines[i]));
+               begin
+
+                  if not RemoveComm(MExclJars.Lines[i], TmpStr)
+                  then
+                     Continue;
+
+                  if TmpStr[1] = '¤'
+                  then
+                     DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  TmpStr));
+
+               end;
 
             FileLines.Add(ExtractFileDrive(LibsDir));
             FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
@@ -792,7 +1905,8 @@ begin
             DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
             MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar'));
 
-            FileLines.Clear;
+            FileLines.DisposeOf;
+            FileLines := TStringList.Create;
 
             FileLines.Add(ExtractFileDrive(LEJ2OLoc.Text));
             FileLines.Add('cd "' + LEJ2OLoc.Text + '"');
@@ -814,14 +1928,23 @@ begin
                SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
             end);
 
+            DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
             DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
             MoveFile(PChar(LEJ2OLoc.Text + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
 
+            FileLines.DisposeOf;
+            FileLines := TStringList.Create;
             FileLines.LoadFromFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
 
             for i := 0 to FileLines.Count - 1 do
                begin
 
+                  FileLines[i] := StringReplace(FileLines[i], 'function SHR(', '//function SHR(', [rfReplaceAll, rfIgnoreCase]);
+                  FileLines[i] := StringReplace(FileLines[i], 'function SHL(', '//function SHL(', [rfReplaceAll, rfIgnoreCase]);
+                  FileLines[i] := StringReplace(FileLines[i], 'procedure SHR(', '//procedure SHR(', [rfReplaceAll, rfIgnoreCase]);
+                  FileLines[i] := StringReplace(FileLines[i], 'procedure SHL(', '//procedure SHL(', [rfReplaceAll, rfIgnoreCase]);
+                  FileLines[i] := StringReplace(FileLines[i], 'function INLINE(', '//function INLINE(', [rfReplaceAll, rfIgnoreCase]);
+                  FileLines[i] := StringReplace(FileLines[i], 'procedure INLINE(', '//procedure INLINE(', [rfReplaceAll, rfIgnoreCase]);
                   FileLines[i] := StringReplace(FileLines[i], 'function _Getthis$', '//function _Getthis$', [rfReplaceAll]);
                   FileLines[i] := StringReplace(FileLines[i], 'property this$', '//property this$', [rfReplaceAll]);
                   FileLines[i] := StringReplace(FileLines[i], 'function _Get.', '//function _Get.', [rfReplaceAll]);
@@ -845,6 +1968,19 @@ begin
                   if Pos('(.', FileLines[i]) > 0
                   then
                      FileLines[i] := '//' + FileLines[i];
+
+                  if Pos(': JOffsetDateTime', FileLines[i]) > 0
+                  then
+                     FileLines[i] := StringReplace(FileLines[i], '//', '', []);
+
+                  if ((Pos(': J;', FileLines[i]) > 0) or
+                      (Pos(': J)', FileLines[i]) > 0))
+                  then
+                     begin
+                        FileLines[i] := StringReplace(FileLines[i], ': J;', ': JObject;', [rfReplaceAll]);
+                        FileLines[i] := StringReplace(FileLines[i], ': J)', ': JObject)', [rfReplaceAll]);
+                        FileLines[i] := StringReplace(FileLines[i], '//', '', []);
+                     end;
 
                   if (Pos('(1: J', FileLines[i]) > 0) or
                      (Pos('(2: J', FileLines[i]) > 0) or
@@ -879,677 +2015,6 @@ begin
             then
                CreateDir(ProjDir + 'Libs');
 
-            DeleteDirectory(LibsDir + '\ExtractedClasses', False);
-
-            FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
-
-            ASPB.Max := Length(FileList);
-
-            for x := 0 to High(FileList) do
-               begin
-
-                  ExcludeFile := False;
-
-                  for i := 0 to MExclFinal.Lines.Count - 1 do
-                     if (MExclFinal.Lines[i][1] <> '/') and
-                        (MExclFinal.Lines[i][1] <> '¤')
-                     then
-                        if Pos(AnsiLowerCase(MExclFinal.Lines[i]), AnsiLowerCase(FileList[x])) > 0
-                        then
-                           begin
-                              ExcludeFile := True;
-                              Break;
-                           end;
-
-                  if ExcludeFile
-                  then
-                     Continue;
-
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
-                  begin
-                     MStatus.Lines.Add('Extracting: ' + FileList[x]);
-                     MStatus.Lines.Add('');
-                     SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-                  end);
-
-                  if zipFile.IsValid(FileList[x])
-                  then
-                     begin
-
-                        zipFile.Open(FileList[x], zmRead);
-                        zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
-
-                     end;
-
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
-                  begin
-                     ASPB.Position := x + 1;
-                  end);
-
-               end;
-
-            zipFile.Free;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add('Classes Extracted');
-               MStatus.Lines.Add('');
-               MStatus.Lines.Add('Creating ' + LEJobName.Text + '.jar');
-               MStatus.Lines.Add('');
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-            end);
-
-            if FileExists(LibsDir + '\ExtractedClasses\module-info.class')
-            then
-               DeleteFile(LibsDir + '\ExtractedClasses\module-info.class');
-
-            if DirectoryExists(LibsDir + '\ExtractedClasses\META-INF')
-            then
-               DeleteDirectory(LibsDir + '\ExtractedClasses\META-INF', False);
-
-            FileList := TDirectory.GetFiles(LibsDir + '\ExtractedClasses', '*.*', TSearchOption.soTopDirectoryOnly);
-
-            for i := 0 to High(FileList) do
-               DeleteFile(FileList[i]);
-
-            FileLines.Clear;
-
-            for i := 0 to MExclFinal.Lines.Count - 1 do
-               if MExclFinal.Lines[i][1] = '/'
-               then
-                  DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  MExclFinal.Lines[i]), False);
-
-            for i := 0 to MExclFinal.Lines.Count - 1 do
-               if MExclFinal.Lines[i][1] = '¤'
-               then
-                  DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  MExclFinal.Lines[i]));
-
-            FileLines.Add(ExtractFileDrive(LibsDir));
-            FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
-            FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
-            FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-            then
-               begin
-                  ShowMessage('There was an error creating' + LEJobName.Text + '.jar. Please check Output');
-                  Exit;
-               end;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add(LEJobName.Text + '.jar Created');
-               MStatus.Lines.Add('');
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-            end);
-
-            if FileExists(ProjDir + 'Libs\' + LEJobName.Text + '.jar')
-            then
-               if not DeleteFile(ProjDir + 'Libs\' + LEJobName.Text + '.jar')
-               then
-                  begin
-                     ShowMessage('Could not delete ' + LibsDir + '\' + LEJobName.Text + '.jar.');
-                     Exit;
-                  end;
-
-            MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(ProjDir + 'Libs\' + LEJobName.Text + '.jar'));
-
-            FileList := TDirectory.GetFiles(LibsDir, '*.so', TSearchOption.soAllDirectories);
-
-            if Length(FileList) > 0
-            then
-               begin
-
-                  if not DirectoryExists(ProjDir + 'Libs\SoFiles')
-                  then
-                     begin
-                        CreateDir(ProjDir + 'Libs\SoFiles');
-                        CreateDir(ProjDir + 'Libs\SoFiles\32');
-                        CreateDir(ProjDir + 'Libs\SoFiles\64');
-                     end;
-
-                  FileLines.LoadFromFile(GetCurrentProjectFileName);
-
-                  i := 0;
-
-                  while  (i < Filelines.Count) and (Pos('<Deployment Version="', FileLines[i]) = 0) do
-                     Inc(i);
-
-                  Inc(i);
-
-                  for x := 0 to High(FileList) do
-                     begin
-
-                        if Pos('armeabi-v7a', FileList[x]) > 0
-                        then
-                           begin
-
-                              if FileExists(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
-                              then
-                                 DeleteFile(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x]));
-
-                              CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x])), False);
-
-                              if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
-                              then
-                                begin
-
-                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    <Platform Name="Android">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    </Platform>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                </DeployFile>');
-
-                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    <Platform Name="Android">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    </Platform>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                </DeployFile>');
-
-                                end;
-
-                           end;
-
-                        if Pos('arm64-v8a', FileList[x]) > 0
-                        then
-                           begin
-
-                              if FileExists(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
-                              then
-                                 DeleteFile(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x]));
-
-                              CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x])), False);
-
-                              if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
-                              then
-                                begin
-
-                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    <Platform Name="Android64">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    </Platform>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                </DeployFile>');
-
-                                   FileLines.Insert(i, '                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    <Platform Name="Android64">');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                        <Overwrite>true</Overwrite>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                    </Platform>');
-                                   Inc(i);
-                                   FileLines.Insert(i, '                </DeployFile>');
-
-                                end;
-
-                           end;
-
-                     end;
-
-                  FileLines.SaveToFile(GetCurrentProjectFileName);
-
-                  with BorlandIDEServices as IOTAModuleServices do
-                    FindModule(GetCurrentProjectFileName).Refresh(True);
-
-               end;
-
-            FileList := TDirectory.GetFiles(LibsDir, '*.xml', TSearchOption.soAllDirectories);
-
-            ManifestLines := TStringList.Create;
-
-            ASPB.Max := Length(FileList);
-            ASPB.Position := 0;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               FManifest.MAndrMan.Text := '';;
-            end);
-
-            for x := 0 to High(FileList) do
-               begin
-
-                  if AnsiLowerCase(ExtractFileName(FileList[x])) <> 'androidmanifest.xml'
-                  then
-                     begin
-
-                        TThread.Synchronize(TThread.CurrentThread,
-                        procedure
-                        begin
-                           ASPB.Position := x + 1;
-                        end);
-
-                        Continue;
-
-                     end
-                  else
-                     TThread.Synchronize(TThread.CurrentThread,
-                     procedure
-                     begin
-                        MStatus.Lines.Add('Extracting: ' + FileList[x]);
-                        MStatus.Lines.Add('');
-                        SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-                     end);
-
-                  ManifestLines.LoadFromFile(FileList[x]);
-
-                  i := 0;
-
-                  while (i <= ManifestLines.Count - 1) and (Pos('<application', ManifestLines[i]) = 0) do
-                     Inc(i);
-
-                  if i = ManifestLines.Count - 1
-                  then
-                     Continue;
-
-                  Inc(i);
-
-                  while (i <= ManifestLines.Count - 1) and (Pos('</application', ManifestLines[i]) = 0) do
-                     begin
-
-                        if Pos('</manifest>', ManifestLines[i]) > 0
-                        then
-                           Break;
-
-                        TThread.Synchronize(TThread.CurrentThread,
-                        procedure
-                        begin
-                           FManifest.MAndrMan.Lines.Add(ManifestLines[i]);
-                        end);
-
-                        Inc(i);
-
-                     end;
-
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
-                  begin
-                     ASPB.Position := x + 1;
-                  end);
-
-               end;
-
-            ManifestLines.Free;
-
-            if FManifest.MAndrMan.Lines.Count > 0
-            then
-               TThread.Synchronize(TThread.CurrentThread,
-               procedure
-
-               var
-                  x: integer;
-
-               begin
-
-                  if FManifest.ShowModal = mrOK
-                  then
-                     begin
-
-                        FileLines.LoadFromFile(ProjDir + 'AndroidManifest.template.xml');
-
-                        i := -1;
-
-                        while i <= FManifest.MAndrMan.Lines.Count - 1 do
-                           begin
-
-                              Inc(i);
-
-                              if Pos('<activity', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    Header := PosHeader('%receivers%');
-                                    FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                    Inc(Header);
-
-                                    if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                    then
-                                       begin
-
-                                          Inc(i);
-
-                                          NestLevel := 1;
-
-                                          while NestLevel > 0 do
-                                             begin
-
-                                                FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                                Inc(Header);
-
-                                                if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                                then
-                                                   Inc(NestLevel);
-
-                                                if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
-                                                then
-                                                   Dec(NestLevel);
-
-                                                if NestLevel > 0
-                                                then
-                                                   Inc(i);
-
-                                             end;
-
-                                          continue;
-
-                                       end;
-
-                                 end;
-
-                              if Pos('<service', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    Header := PosHeader('%activity%');
-                                    FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                    Inc(Header);
-
-                                    if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                    then
-                                       begin
-
-                                          Inc(i);
-
-                                          NestLevel := 1;
-
-                                          while NestLevel > 0 do
-                                             begin
-
-                                                FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                                Inc(Header);
-
-                                                if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                                then
-                                                   Inc(NestLevel);
-
-                                                if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
-                                                then
-                                                   Dec(NestLevel);
-
-                                                if NestLevel > 0
-                                                then
-                                                   Inc(i);
-
-                                             end;
-
-                                          continue;
-
-                                       end;
-
-                                 end;
-
-                              if Pos('<meta-data', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    Header := PosHeader('<%services%>');
-                                    FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                    Inc(Header);
-
-                                    if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                    then
-                                       begin
-
-                                          Inc(i);
-
-                                          NestLevel := 1;
-
-                                          while NestLevel > 0 do
-                                             begin
-
-                                                FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                                Inc(Header);
-
-                                                if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                                then
-                                                   Inc(NestLevel);
-
-                                                if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
-                                                then
-                                                   Dec(NestLevel);
-
-                                                if NestLevel > 0
-                                                then
-                                                   Inc(i);
-
-                                             end;
-
-                                          continue;
-
-                                       end;
-
-                                 end;
-
-                              if Pos('<provider', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    Header := PosHeader('</application>');
-                                    FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                    Inc(Header);
-
-                                    if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                    then
-                                       begin
-
-                                          Inc(i);
-
-                                          NestLevel := 1;
-
-                                          while NestLevel > 0 do
-                                             begin
-
-                                                FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                                Inc(Header);
-
-                                                if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                                then
-                                                   Inc(NestLevel);
-
-                                                if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
-                                                then
-                                                   Dec(NestLevel);
-
-                                                if NestLevel > 0
-                                                then
-                                                   Inc(i);
-
-                                             end;
-
-                                          continue;
-
-                                       end;
-
-                                 end;
-
-                              if Pos('<receiver', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    Header := PosHeader('</application>');
-                                    FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                    Inc(Header);
-
-                                    if (Pos('/>', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                    then
-                                       begin
-
-                                          Inc(i);
-
-                                          NestLevel := 1;
-
-                                          while NestLevel > 0 do
-                                             begin
-
-                                                FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                                Inc(Header);
-
-                                                if (Pos('<', FManifest.MAndrMan.Lines[i]) > 0) and
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) = 0)
-                                                then
-                                                   Inc(NestLevel);
-
-                                                if (Pos('/>', FManifest.MAndrMan.Lines[i]) > 0) or
-                                                   (Pos('</', FManifest.MAndrMan.Lines[i]) > 0)
-                                                then
-                                                   Dec(NestLevel);
-
-                                                if NestLevel > 0
-                                                then
-                                                   Inc(i);
-
-                                             end;
-
-                                          continue;
-
-                                       end;
-
-                                 end;
-
-                              if Pos('<uses-permission', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-                                    Header := PosHeader('<application');
-                                    FileLines.Insert(Header, FManifest.MAndrMan.Lines[i]);
-                                    continue;
-                                 end;
-
-                              if Pos('<!--', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    while Pos('-->', FManifest.MAndrMan.Lines[i]) = 0 do
-                                       Inc(i);
-
-                                    continue;
-
-                                 end;
-
-                              if Pos('android:', FManifest.MAndrMan.Lines[i]) > 0
-                              then
-                                 begin
-
-                                    Found := False;
-
-                                    x := PosHeader('<application');
-
-                                    while Pos('>', FileLines[x]) = 0 do
-                                       if Pos(Trim(FManifest.MAndrMan.Lines[i]), FileLines[x]) > 0
-                                       then
-                                          begin
-                                             Found := True;
-                                             Break;
-                                          end
-                                       else
-                                          Inc(x);
-
-                                    if Found
-                                    then
-                                       Continue;
-
-                                    if (Pos('android:persistent', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:restoreAnyVersion', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:label', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:restoreAnyVersion', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:debuggable', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:largeHeap', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:icon', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:theme', FManifest.MAndrMan.Lines[i]) = 0) and
-                                       (Pos('android:hardwareAccelerated', FManifest.MAndrMan.Lines[i]) = 0)
-                                    then
-                                       begin
-
-                                          x := PosHeader('<application');
-
-                                          while Pos('>', FileLines[x]) = 0 do
-                                             Inc(x);
-
-                                          FileLines[x] := StringReplace(FileLines[x], '>', '', []);
-                                          FileLines.Insert(x + 1, StringReplace(FManifest.MAndrMan.Lines[i], '>', '', []) + '>');
-                                          continue;
-
-                                       end;
-
-                                 end;
-                           end;
-
-                        FileLines.SaveToFile(ProjDir + 'AndroidManifest.template.xml');
-
-                     end;
-
-               end);
-
-           if not FoundInFile(GetCurrentProjectFileName, '<JavaReference Include="Libs\' + LEJobName.Text + '.jar">')
-           then
-              begin
-
-                 FileLines.LoadFromFile(GetCurrentProjectFileName);
-
-                 i := 0;
-
-                 while  (i < Filelines.Count) and (Pos('<BuildConfiguration Include="Release">', FileLines[i]) = 0) do
-                    Inc(i);
-
-                 FileLines.Insert(i, '<JavaReference Include="Libs\' + LEJobName.Text + '.jar">');
-                 Inc(i);
-                 FileLines.Insert(i, '<ContainerId>ClassesdexFile64</ContainerId>');
-                 Inc(i);
-                 FileLines.Insert(i, ' <Disabled/>');
-                 Inc(i);
-                 FileLines.Insert(i, '</JavaReference>');
-
-                 FileLines.SaveToFile(GetCurrentProjectFileName);
-
-                 with BorlandIDEServices as IOTAModuleServices do
-                    FindModule(GetCurrentProjectFileName).Refresh(True);
-
-              end;
-
             DeleteDirectory(TmpDir, False);
 
             if TSKeepLibs.State = tssOff
@@ -1557,7 +2022,7 @@ begin
                DeleteDirectory(LibsDir, False);
 
          finally
-            FileLines.Free;
+            FileLines.DisposeOf;
          end;
 
       finally
@@ -1568,6 +2033,7 @@ begin
          BNewJob.Enabled := True;
          BSave.Enabled := True;
          BDelete.Enabled := True;
+         BCompileAll.Enabled := True;
 
       end;
 

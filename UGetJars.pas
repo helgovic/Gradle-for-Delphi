@@ -305,9 +305,7 @@ end;
 
 initialization
   FGetJarsExpert := TGetJarsExpert.Instance;
-
 finalization
   FreeAndNil(FGetJarsExpert);
-
 end.
 

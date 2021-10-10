@@ -33,7 +33,7 @@ object FRepositories: TFRepositories
   end
   object CLBRepositories: TCheckListBox
     Left = 24
-    Top = 36
+    Top = 26
     Width = 597
     Height = 175
     Color = 3288877
@@ -46,58 +46,51 @@ object FRepositories: TFRepositories
     ParentFont = False
     TabOrder = 0
   end
-  object BCancel: TPanel
+  object BCancel: TButton
     Left = 143
     Top = 232
     Width = 117
     Height = 49
     Caption = 'Cancel'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 2
     ParentFont = False
     TabOrder = 1
-    TabStop = True
     OnClick = BCancelClick
   end
-  object BOK: TPanel
+  object BOK: TButton
     Left = 385
     Top = 232
     Width = 117
     Height = 49
     Caption = 'OK'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 1
     ParentFont = False
     TabOrder = 2
-    TabStop = True
     OnClick = BOKClick
   end
-  object BAddRepos: TPanel
+  object BAddRepos: TButton
     Left = 264
     Top = 232
     Width = 117
     Height = 49
     Caption = 'Add Repository'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
     ParentFont = False
     TabOrder = 3
-    TabStop = True
     OnClick = BAddReposClick
   end
 end

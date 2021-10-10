@@ -39,40 +39,36 @@ object FAddRep: TFAddRep
     ParentFont = False
     TabOrder = 0
   end
-  object BOK: TPanel
+  object BOK: TButton
     Left = 324
     Top = 80
     Width = 117
     Height = 49
     Caption = 'OK'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 1
     ParentFont = False
     TabOrder = 1
-    TabStop = True
     OnClick = BOKClick
   end
-  object BCancel: TPanel
+  object BCancel: TButton
     Left = 203
     Top = 80
     Width = 117
     Height = 49
     Caption = 'Cancel'
-    Color = clBlack
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
-    ParentBackground = False
+    ModalResult = 2
     ParentFont = False
     TabOrder = 2
-    TabStop = True
     OnClick = BCancelClick
   end
 end
