@@ -18,13 +18,22 @@ Enter the path of your Java2OP directory in the "Java2OP location" box.
 You have to edit the cache.txt in the Java2OP directory. if eks. you are downloading google play services, you have to remove those entries. 
 You also have to disable the build in jars in your projects libs entries. You should avoid using buildin libs, except for FMX.jar.
 
+In the "Job name" box enter a jobname. This will name the JNI file.
+
 In the "Dependencies" box, enter the libs you want to download (Copy eks. from maven repository Gradle link). 
 
 In the "Additional (Local) Dependencies" enter any local libs that is needed for this job.
+You have to add any dependencies to these libs.
 
 In the "Exclude when building JNI pas file" enter libs/directories/class's that are not to be processed by Java2OP. This can be content that Java2OP cannot process (Hopefully you don't need to access it in your code).
 
-In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be contents that are already included in another jar (job).  
+In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be test or compile time dependensies.
+
+Create JNI file.
+
+When you have finished coding against the JNI file, shrink it with "Shrink JNI Files" addon, which can be downloaded from here https://github.com/helgovic/Delphi-shrink-JNI-files.
+
+When you are ready to compile your app, compile project jar.
 
 EXCLUSION PARAMETERS
 
@@ -32,13 +41,6 @@ You can enter three types of parameters:
 1. Not prefixed (e.g. guana). This denotes jars/aars where string is contained in the file name. (Not case sensitive).
 2. Prefixed with / (e.g. /android\support\v4). Denotes a directory of classes, that are to be excluded. (Case sensitive).
 3. Prefixed with ¤ (e. g. ¤com\google\android\exoplayer2\source\CompositeMediaSource$ForwardingEventListener.class). Denotes single class that is to be excluded. (Case sensitive).
-
-In the "Job name" box enter a jobname. This will name the jar and JNI files.
-
-Hit "Go"
-
-As the JNI file can grow large you can use "Shrink JNI Files" addon, which can be downloaded from here https://github.com/helgovic/Delphi-shrink-JNI-files
-
-
+4. Comments (//) and blank lines can be entered.
 
 
