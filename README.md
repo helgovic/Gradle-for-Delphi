@@ -20,10 +20,11 @@ You also have to disable the build in jars in your projects libs entries. You sh
 
 In the "Job name" box enter a jobname. This will name the JNI file.
 
-In the "Dependencies" box, enter the libs you want to download (Copy eks. from maven repository Gradle link). 
+In the "Dependencies" box, enter the libs you want to download (Copy eks. from maven repository Gradle link). The command has to be in one line 
+(e.g ('com.azure:azure-identity:1.2.5') {exclude group: 'com.azure', module: 'azure-core-http-netty'}). "Implementation" and "Compile" prefix will be removed. 
 
 In the "Additional (Local) Dependencies" enter any local libs that is needed for this job.
-You have to add any dependencies to these libs.
+You have to add any dependencies to these libs in the dependencies box.
 
 In the "Exclude when building JNI pas file" enter libs/directories/class's that are not to be processed by Java2OP. This can be content that Java2OP cannot process (Hopefully you don't need to access it in your code).
 
