@@ -312,9 +312,9 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
-         if ReadString(LEJobName.Text, 'Repositories', '') = ''
+         if ReadString('Settings', 'Repositories', '') = ''
          then
-            WriteString(LEJobName.Text, 'Repositories', 'mavenCentral()¤google()¤jcenter()');
+            WriteString('Settings', 'Repositories', 'mavenCentral()¤google()¤jcenter()');
          WriteString(LEJobName.Text, 'Dependensies', MemoStrToIniStr(MJars.Lines.Text));
          WriteString(LEJobName.Text, 'AddDependensies', MemoStrToIniStr(MAddJars.Lines.Text));
          WriteString(LEJobName.Text, 'Excludes', MemoStrToIniStr(MExclJars.Lines.Text));
@@ -424,7 +424,7 @@ begin
 
          with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
             try
-               WriteString(LEJobName.Text, 'Repositories', RepStr);
+               WriteString('Settings', 'Repositories', RepStr);
             finally
                Free;
             end;
@@ -514,7 +514,7 @@ begin
 
          with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
             try
-               Repos.DelimitedText := ReadString(LEJobName.Text, 'Repositories', '');
+               Repos.DelimitedText := ReadString('Settings', 'Repositories', '');
             finally
                Free;
             end;
@@ -539,6 +539,7 @@ begin
          begin
             MStatus.Text := 'Building Gradle';
             MStatus.Lines.Add('');
+            SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
          end);
 
          with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
@@ -1472,7 +1473,6 @@ begin
    then
       with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
          try
-            DeleteKey(LEJobName.Text, 'Repositories');
             DeleteKey(LEJobName.Text, 'Dependensies');
             DeleteKey(LEJobName.Text, 'AddDependensies');
             DeleteKey(LEJobName.Text, 'Excludes');
@@ -1527,6 +1527,7 @@ begin
          begin
             MStatus.Text := 'Building Gradle';
             MStatus.Lines.Add('');
+            SendMessage(MStatus.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
          end);
 
          ProjDir := ExtractFilePath(GetCurrentProjectFileName);
@@ -1604,7 +1605,7 @@ begin
 
             with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
                try
-                  Repos.DelimitedText := ReadString(LEJobName.Text, 'Repositories', '');
+                  Repos.DelimitedText := ReadString('Settings', 'Repositories', '');
                finally
                   Free;
                end;

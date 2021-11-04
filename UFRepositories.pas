@@ -114,7 +114,7 @@ begin
 
    with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
       try
-         ProjRep.DelimitedText := ReadString(FGetJars.LEJobName.Text, 'Repositories', '');
+         ProjRep.DelimitedText := ReadString('Settings', 'Repositories', '');
          for i := 0 to ProjRep.Count - 1 do
             for x := 0 to CLBRepositories.Count - 1 do
                if ProjRep[i] = CLBRepositories.Items[x]
@@ -124,6 +124,7 @@ begin
       finally
          Free;
       end;
+
       ProjRep.Free;
 
 end;
