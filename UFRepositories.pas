@@ -53,13 +53,13 @@ begin
             with TRegIniFile.Create(REG_KEY) do
             try
                RepStr := ReadString(REG_BUILD_OPTIONS, 'Repositories', '');
-               RepStr := RepStr + '¤' + FAddRep.LERepository.Text;
+               RepStr := RepStr + '¤' + FAddRep.LERepName.Text + '#' + FAddRep.LERepository.Text;
                WriteString(REG_BUILD_OPTIONS, 'Repositories', RepStr);
             finally
                Free;
             end;
 
-            CLBRepositories.AddItem(FAddRep.LERepository.Text, nil);
+            CLBRepositories.AddItem(FAddRep.LERepName.Text + ' ' + FAddRep.LERepository.Text, nil);
             CLBRepositories.Checked[CLBRepositories.Count - 1] := True;
 
          end;
@@ -92,7 +92,6 @@ procedure TFRepositories.FormShow(Sender: TObject);
 
 var
    i, x: integer;
-   ProjRep: TStringList;
 
 begin
 
@@ -106,26 +105,21 @@ begin
    CLBRepositories.Items.Clear;
 
    for i := 0 to Repositories.Count - 1 do
-      CLBRepositories.AddItem(Repositories[i], nil);
+      CLBRepositories.AddItem(StrBefore('#', Repositories[i]) + ' ' + StrAfter('#', Repositories[i]), nil);
 
-   ProjRep := TStringList.Create;
-   ProjRep.Delimiter := '¤';
-   ProjRep.StrictDelimiter := True;
+   FGetJars.TRepositories.First;
 
-   with TIniFile.Create(StrBefore('.dproj', GetCurrentProjectFileName) + '.ini') do
-      try
-         ProjRep.DelimitedText := ReadString('Settings', 'Repositories', '');
-         for i := 0 to ProjRep.Count - 1 do
-            for x := 0 to CLBRepositories.Count - 1 do
-               if ProjRep[i] = CLBRepositories.Items[x]
-               then
-                  CLBRepositories.Checked[x] := True;
+   while not FGetJars.TRepositories.Eof do
+      begin
 
-      finally
-         Free;
+         for x := 0 to CLBRepositories.Count - 1 do
+            if FGetJars.TRepositories.FieldByName('Link').AsString = StrAfter(' ',  CLBRepositories.Items[x])
+            then
+               CLBRepositories.Checked[x] := True;
+
+         FGetJars.TRepositories.Next;
+
       end;
-
-      ProjRep.Free;
 
 end;
 

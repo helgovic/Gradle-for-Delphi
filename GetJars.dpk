@@ -34,6 +34,11 @@ package GetJars;
 requires
   DesignIDE,
   Jcl,
+  FireDAC,
+  FireDACCommonDriver,
+  FireDACCommon,
+  vclFireDAC,
+  FireDACSqliteDriver,
   tmsdXE7,
   tmsexdXE7;
 
@@ -43,6 +48,7 @@ contains
   UFAndroidManifest in 'UFAndroidManifest.pas' {FManifest},
   UFRepositories in 'UFRepositories.pas' {FRepositories},
   UAddRep in 'UAddRep.pas' {FAddRep},
-  MyZip in 'MyZip.pas';
+  MyZip in 'MyZip.pas',
+  UFHistory in 'UFHistory.pas' {FHistory};
 
 end.

@@ -34,15 +34,28 @@ type
   public
   end;
 
+//  TIDENotifier = class(TInterfacedObject, IOTAIDENotifier)
+//  protected
+//    procedure FileNotification(NotifyCode: TOTAFileNotification;
+//      const FileName: string; var Cancel: Boolean);
+//    procedure BeforeCompile(const Project: IOTAProject; var Cancel: Boolean); overload;
+//    procedure AfterCompile(Succeeded: Boolean); overload;
+//    procedure AfterSave;
+//    procedure BeforeSave;
+//    procedure Destroyed;
+//    procedure Modified;
+//  end;
+
   function GetJarsExpert: TGetJarsExpert;
 
 implementation
 
 uses
-   JclStrings, UFGetJars, UFAndroidManifest, UFRepositories, UAddRep;
+   JclStrings, UFGetJars, UFAndroidManifest, UFRepositories, UAddRep, UFHistory;
 
 var
    FGetJarsExpert: TGetJarsExpert;
+//   IDENot: Integer;
 
 function FindMenuItem(MenuCaptions: String): TMenuItem;
 
@@ -128,6 +141,7 @@ var
    NTAServices : INTAServices;
    Bmp: TBitmap;
    ImageIndex: integer;
+//   Intf2: TIDENotifier;
 
 begin
 
@@ -160,7 +174,7 @@ begin
          NTAServices.AddActionMenu(FProjectMenu.Name, FActionGetJars, FMenuGetJars, True);
 
          Bmp.LoadFromResourceName(HInstance, 'AndroidBmp');
-         ImageIndex := NTAServices.AddMasked(Bmp, Bmp.TransparentColor,
+         ImageIndex := NTAServices.AddMasked(Bmp, clNone,
                                   'Android icon');
 
          FActionGetJars.ImageIndex := ImageIndex;
@@ -169,14 +183,16 @@ begin
          Bmp.DisposeOf;
 
          FGetJars := TFGetJars.Create(nil);
-         FManifest := TFManifest.Create(FGetJars);
-         FRepositories := TFRepositories.Create(FGetJars);
-         FAddRep := TFAddRep.Create(FRepositories);
+         FManifest := TFManifest.Create(nil);
+         FRepositories := TFRepositories.Create(nil);
+         FAddRep := TFAddRep.Create(nil);
+         FHistory := TFHistory.Create(nil);
 
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFGetJars, FGetJars);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFManifest, FManifest);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFRepositories, FRepositories);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFAddRep, FAddRep);
+         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFHistory, FHistory);
 
          with TRegIniFile.Create(REG_KEY) do
          try
@@ -186,6 +202,9 @@ begin
          finally
             Free;
          end;
+
+//         Intf2 := TIDENotifier.Create;
+//         IDENot := (BorlandIDEServices as IOTAServices).AddNotifier(Intf2);
 
       end;
 
@@ -245,11 +264,20 @@ end;
 destructor TGetJarsExpert.Destroy;
 begin
 
+//  (BorlandIDEServices as IOTACompileServices).RemoveNotifier(IDENot);
+
+//   FGetJars.FDCJobs.Connected := False;
+//
    FMenuGetJars.Free;
    FActionGetJars.Free;
+   FManifest.Free;
+   FRepositories.Free;
+   FAddRep.Free;
+   FHistory.Free;
    FGetJars.Free;
 
    inherited Destroy;
+
 end;
 
 class procedure TBADIToolsAPIFunctions.RegisterFormClassForTheming(
@@ -268,8 +296,22 @@ begin
    Var
      ITS : IOTAIDEThemingServices;
   {$ENDIF Ver340}
+   {$IFDEF Ver350}
+   Var
+     ITS : IOTAIDEThemingServices;
+  {$ENDIF Ver350}
 
    Begin
+
+     {$IFDEF Ver350}
+     If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then
+       If ITS.IDEThemingEnabled Then
+         Begin
+           ITS.RegisterFormClass(AFormClass);
+           If Assigned(Component) Then
+             ITS.ApplyTheme(Component);
+         End;
+     {$ENDIF Ver350}
 
      {$IFDEF Ver340}
      If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then
@@ -302,6 +344,49 @@ begin
    End;
 
 end;
+
+{ TIDENotifier }
+
+//procedure TIDENotifier.AfterCompile(Succeeded: Boolean);
+//begin
+//
+//end;
+//
+//procedure TIDENotifier.AfterSave;
+//begin
+//
+//end;
+//
+//procedure TIDENotifier.BeforeCompile(const Project: IOTAProject;
+//  var Cancel: Boolean);
+//begin
+//
+//end;
+//
+//procedure TIDENotifier.BeforeSave;
+//begin
+//
+//end;
+//
+//procedure TIDENotifier.Destroyed;
+//begin
+//
+//end;
+//
+//procedure TIDENotifier.FileNotification(NotifyCode: TOTAFileNotification;
+//  const FileName: string; var Cancel: Boolean);
+//begin
+//
+////   if NotifyCode = ofnActiveProjectChanged
+////   then
+////      FGetJars.FDCJobs.Connected := False;
+//
+//end;
+//
+//procedure TIDENotifier.Modified;
+//begin
+//
+//end;
 
 initialization
   FGetJarsExpert := TGetJarsExpert.Instance;

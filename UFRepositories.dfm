@@ -11,12 +11,10 @@ object FRepositories: TFRepositories
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poDesktopCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 24
@@ -33,7 +31,7 @@ object FRepositories: TFRepositories
   end
   object CLBRepositories: TCheckListBox
     Left = 24
-    Top = 26
+    Top = 30
     Width = 597
     Height = 175
     Color = 3288877
@@ -63,7 +61,7 @@ object FRepositories: TFRepositories
     OnClick = BCancelClick
   end
   object BOK: TButton
-    Left = 385
+    Left = 387
     Top = 232
     Width = 117
     Height = 49
@@ -75,7 +73,7 @@ object FRepositories: TFRepositories
     Font.Style = []
     ModalResult = 1
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 3
     OnClick = BOKClick
   end
   object BAddRepos: TButton
@@ -90,7 +88,7 @@ object FRepositories: TFRepositories
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 2
     OnClick = BAddReposClick
   end
 end

@@ -3,7 +3,7 @@ object FAddRep: TFAddRep
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Add Repository'
-  ClientHeight = 155
+  ClientHeight = 224
   ClientWidth = 645
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
@@ -11,14 +11,13 @@ object FAddRep: TFAddRep
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poDesktopCenter
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object LERepository: TLabeledEdit
-    Left = 26
-    Top = 34
+    Left = 16
+    Top = 110
     Width = 601
     Height = 21
     Color = 3288877
@@ -38,10 +37,11 @@ object FAddRep: TFAddRep
     Font.Style = []
     ParentFont = False
     TabOrder = 0
+    Text = ''
   end
   object BOK: TButton
-    Left = 324
-    Top = 80
+    Left = 314
+    Top = 156
     Width = 117
     Height = 49
     Caption = 'OK'
@@ -56,8 +56,8 @@ object FAddRep: TFAddRep
     OnClick = BOKClick
   end
   object BCancel: TButton
-    Left = 203
-    Top = 80
+    Left = 193
+    Top = 156
     Width = 117
     Height = 49
     Caption = 'Cancel'
@@ -70,5 +70,29 @@ object FAddRep: TFAddRep
     ParentFont = False
     TabOrder = 2
     OnClick = BCancelClick
+  end
+  object LERepName: TLabeledEdit
+    Left = 16
+    Top = 44
+    Width = 601
+    Height = 21
+    Color = 3288877
+    EditLabel.Width = 27
+    EditLabel.Height = 13
+    EditLabel.Caption = 'Name'
+    EditLabel.Font.Charset = DEFAULT_CHARSET
+    EditLabel.Font.Color = clWhite
+    EditLabel.Font.Height = -11
+    EditLabel.Font.Name = 'Tahoma'
+    EditLabel.Font.Style = []
+    EditLabel.ParentFont = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 3
+    Text = ''
   end
 end

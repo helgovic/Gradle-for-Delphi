@@ -4,13 +4,14 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Mask;
 
 type
   TFAddRep = class(TForm)
     LERepository: TLabeledEdit;
     BOK: TButton;
     BCancel: TButton;
+    LERepName: TLabeledEdit;
     procedure FormShow(Sender: TObject);
     procedure BOKClick(Sender: TObject);
     procedure BCancelClick(Sender: TObject);
@@ -40,6 +41,13 @@ procedure TFAddRep.BOKClick(Sender: TObject);
 var i: integer;
 
 begin
+
+   if LERepName.Text = ''
+   then
+      begin
+         ShowMessage('Please enter Name');
+         Exit;
+      end;
 
    if LERepository.Text = ''
    then
