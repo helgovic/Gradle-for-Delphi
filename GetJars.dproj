@@ -118,8 +118,6 @@
         <DCCReference Include="FireDACCommon.dcp"/>
         <DCCReference Include="vclFireDAC.dcp"/>
         <DCCReference Include="FireDACSqliteDriver.dcp"/>
-        <DCCReference Include="tmsdXE7.dcp"/>
-        <DCCReference Include="tmsexdXE7.dcp"/>
         <DCCReference Include="UGetJars.pas"/>
         <DCCReference Include="UFGetJars.pas">
             <Form>FGetJars</Form>

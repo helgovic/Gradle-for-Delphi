@@ -3,27 +3,28 @@ File_0=TSourceModule,'C:\Program Files (x86)\Embarcadero\Studio\22.0\source\Tool
 File_1=TSourceModule,'C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\DeploymentAPI.pas',0,1,213,69,243,0,0,,{1
 File_2=TSourceModule,'C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\ToolIntf.pas',0,1,1,107,4,0,0,,
 File_3=TSourceModule,'C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\FileIntf.pas',0,1,1,79,8,0,0,,
-File_4=TSourceModule,'C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\PlatformConst.pas',0,1,28,68,70,0,0,,
-File_5=TSourceModule,'c:\program files (x86)\embarcadero\studio\22.0\SOURCE\RTL\SYS\System.SysUtils.pas',0,1,10558,1,10600,0,0,,
-File_6=TSourceModule,'D:\Deplhi\DeployMan\UFormMain.pas',0,1,663,67,663,0,0,,{1
-File_7=TSourceModule,'D:\Deplhi\Explorer\UUtils.pas',0,1,9917,1,9936,0,0,,{1
-File_8=TSourceModule,'D:\Deplhi\Explorer\UWebDav.pas',0,1,234,1,255,0,0,,
-File_9=TSourceModule,'D:\Deplhi\Explorer\UFMain.pas',0,1,28186,1,28207,0,0,,{1
-File_10=TSourceModule,'D:\Deplhi\Explorer\UFTP.pas',0,1,1,32,21,0,0,,
-File_11=TSourceModule,'D:\Deplhi\Explorer\USFTP.pas',0,1,24,1,43,0,0,,{1
-File_12=TSourceModule,'D:\Deplhi\Explorer\ULan.pas',0,1,46,21,55,0,0,,
+File_4=TSourceModule,'c:\program files (x86)\embarcadero\studio\22.0\SOURCE\RTL\SYS\System.SysUtils.pas',0,1,10558,1,10600,0,0,,
+File_5=TSourceModule,'D:\Deplhi\DeployMan\UFormMain.pas',0,1,663,67,663,0,0,,{1
+File_6=TSourceModule,'D:\Deplhi\Explorer\UUtils.pas',0,1,9917,1,9936,0,0,,{1
+File_7=TSourceModule,'D:\Deplhi\Explorer\UWebDav.pas',0,1,234,1,255,0,0,,
+File_8=TSourceModule,'D:\Deplhi\Explorer\UFMain.pas',0,1,28186,1,28207,0,0,,{1
+File_9=TSourceModule,'D:\Deplhi\Explorer\UFTP.pas',0,1,1,32,21,0,0,,
+File_10=TSourceModule,'D:\Deplhi\Explorer\USFTP.pas',0,1,24,1,43,0,0,,{1
+File_11=TSourceModule,'D:\Deplhi\Explorer\ULan.pas',0,1,46,21,55,0,0,,
 
 [Modules]
 Module0=D:\Downloads\XE11\GetJars\UFGetJars.pas
 Module1=D:\Downloads\XE11\GetJars\GetJars.dproj
-Module2=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas
-Module3=D:\Downloads\XE11\jcl-master\jcl-master\jcl\source\common\JclStrings.pas
-Module4=D:\Downloads\XE11\GetJars\UFRepositories.pas
-Module5=D:\Downloads\XE11\GetJars\UFHistory.pas
-Module6=D:\Downloads\XE11\GetJars\UFAndroidManifest.pas
-Module7=D:\Downloads\XE11\GetJars\UAddRep.pas
-Module8=D:\Downloads\XE11\GetJars\UGetJars.pas
-Count=9
+Module2=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\PlatformAPI.pas
+Module3=C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\PlatformConst.pas
+Module4=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas
+Module5=D:\Downloads\XE11\jcl-master\jcl-master\jcl\source\common\JclStrings.pas
+Module6=D:\Downloads\XE11\GetJars\UFRepositories.pas
+Module7=D:\Downloads\XE11\GetJars\UFHistory.pas
+Module8=D:\Downloads\XE11\GetJars\UFAndroidManifest.pas
+Module9=D:\Downloads\XE11\GetJars\UAddRep.pas
+Module10=D:\Downloads\XE11\GetJars\UGetJars.pas
+Count=11
 EditWindowCount=1
 
 [D:\Downloads\XE11\GetJars\UFGetJars.pas]
@@ -31,6 +32,12 @@ ModuleType=TSourceModule
 
 [D:\Downloads\XE11\GetJars\GetJars.dproj]
 ModuleType=TBaseProject
+
+[c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\PlatformAPI.pas]
+ModuleType=TSourceModule
+
+[C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\PlatformConst.pas]
+ModuleType=TSourceModule
 
 [c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas]
 ModuleType=TSourceModule
@@ -54,8 +61,8 @@ ModuleType=TSourceModule
 ModuleType=TSourceModule
 
 [EditWindow0]
-ViewCount=10
-CurrentView=3
+ViewCount=12
+CurrentEditView=D:\Downloads\XE11\GetJars\UFGetJars.pas
 View0=0
 View1=1
 View2=2
@@ -66,6 +73,8 @@ View6=6
 View7=7
 View8=8
 View9=9
+View10=10
+View11=11
 PercentageSizes=1
 Create=1
 Visible=1
@@ -96,17 +105,21 @@ BottomMiddlePanelClients=DockSite0,GraphDrawingModel
 BottomMiddelPanelData=0000080001020200000009000000446F636B536974653010000000477261706844726177696E67566965773C29000000000000025E06000000000000FFFFFFFF
 
 [View0]
+CustomEditViewType=TOTACustomEditView
+OTAEditViewType=WelcomePage.MainPage
+
+[View1]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\GetJars.dpk
-CursorX=70
-CursorY=37
+CursorX=22
+CursorY=41
 TopLine=12
 LeftCol=1
 Elisions=
 Bookmarks=
 EditViewName=D:\Downloads\XE11\GetJars\GetJars.dpk
 
-[View1]
+[View2]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UGetJars.pas
 CursorX=1
@@ -117,22 +130,40 @@ Elisions=
 Bookmarks=
 EditViewName=D:\Downloads\XE11\GetJars\UGetJars.pas
 
-[View2]
+[View3]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UFGetJars.pas
-CursorX=24
-CursorY=2486
-TopLine=2452
+CursorX=27
+CursorY=2428
+TopLine=2392
 LeftCol=1
 Elisions=
-Bookmarks={1,3018,1}{2,2895,1}
+Bookmarks={1,3028,1}{2,2905,1}
 EditViewName=D:\Downloads\XE11\GetJars\UFGetJars.pas
 
-[View3]
-CustomEditViewType=TOTACustomEditView
-OTAEditViewType=WelcomePage.MainPage
-
 [View4]
+CustomEditViewType=TEditView
+Module=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\PlatformAPI.pas
+CursorX=1
+CursorY=1630
+TopLine=1607
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\PlatformAPI.pas
+
+[View5]
+CustomEditViewType=TEditView
+Module=C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\PlatformConst.pas
+CursorX=36
+CursorY=29
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\PlatformConst.pas
+
+[View6]
 CustomEditViewType=TEditView
 Module=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas
 CursorX=109
@@ -143,7 +174,7 @@ Elisions=
 Bookmarks=
 EditViewName=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas
 
-[View5]
+[View7]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\jcl-master\jcl-master\jcl\source\common\JclStrings.pas
 CursorX=19
@@ -154,7 +185,7 @@ Elisions=
 Bookmarks=
 EditViewName=D:\Downloads\XE11\jcl-master\jcl-master\jcl\source\common\JclStrings.pas
 
-[View6]
+[View8]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UAddRep.pas
 CursorX=1
@@ -165,7 +196,7 @@ Elisions=
 Bookmarks=
 EditViewName=Borland.FormDesignerView
 
-[View7]
+[View9]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UFAndroidManifest.pas
 CursorX=1
@@ -176,7 +207,7 @@ Elisions=
 Bookmarks=
 EditViewName=Borland.FormDesignerView
 
-[View8]
+[View10]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UFHistory.pas
 CursorX=7
@@ -187,7 +218,7 @@ Elisions=
 Bookmarks=
 EditViewName=Borland.FormDesignerView
 
-[View9]
+[View11]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UFRepositories.pas
 CursorX=44
@@ -212,11 +243,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=2962
+Height=1114
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=2962
+ClientHeight=1114
 TBDockHeight=219
 LRDockWidth=13604
 Dockable=1
@@ -359,8 +390,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=0
-Top=0
+Left=800
+Top=2032
 Width=276
 Height=362
 MaxLeft=-1
@@ -384,11 +415,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=2962
+Height=1114
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=2962
+ClientHeight=1114
 TBDockHeight=410
 LRDockWidth=4953
 Dockable=1
@@ -403,11 +434,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=2962
+Height=1114
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=2962
+ClientHeight=1114
 TBDockHeight=219
 LRDockWidth=7406
 Dockable=1
@@ -426,11 +457,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=2962
+Height=1114
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=2962
+ClientHeight=1114
 TBDockHeight=1533
 LRDockWidth=3484
 Dockable=1
@@ -445,11 +476,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=2962
+Height=1114
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=2962
+ClientHeight=1114
 TBDockHeight=2067
 LRDockWidth=3484
 Dockable=1
@@ -564,8 +595,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=0
-Top=0
+Left=7648
+Top=272
 Width=1849
 Height=3143
 MaxLeft=-1
@@ -624,11 +655,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=2962
+Height=1114
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=2962
+ClientHeight=1114
 TBDockHeight=1543
 LRDockWidth=8740
 Dockable=1
@@ -650,11 +681,11 @@ State=0
 Left=0
 Top=0
 Width=2000
-Height=6057
+Height=8476
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=2000
-ClientHeight=6057
+ClientHeight=8476
 TBDockHeight=3676
 LRDockWidth=1896
 Dockable=1
@@ -774,12 +805,12 @@ State=0
 Left=8
 Top=8
 Width=3823
-Height=3229
+Height=1381
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=3229
-TBDockHeight=3229
+ClientHeight=1381
+TBDockHeight=1381
 LRDockWidth=3823
 Dockable=1
 StayOnTop=0

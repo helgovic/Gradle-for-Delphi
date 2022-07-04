@@ -38,9 +38,7 @@ requires
   FireDACCommonDriver,
   FireDACCommon,
   vclFireDAC,
-  FireDACSqliteDriver,
-  tmsdXE7,
-  tmsexdXE7;
+  FireDACSqliteDriver;
 
 contains
   UGetJars in 'UGetJars.pas',

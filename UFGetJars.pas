@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, AdvSmoothProgressBar, AdvSmoothButton,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls,
   MyZip, System.IOUtils, JclFileUtils,
   Vcl.ComCtrls, Vcl.WinXCtrls, PlatformAPI, Vcl.Mask, FireDAC.Stan.Intf,
@@ -278,7 +278,7 @@ var
 
 begin
   PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
-  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform(cAndroidArm32Platform) as IOTAPlatformSDKAndroid;
+  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
   AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
   BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('\', ExtractFileDir(AaptPath)) + 1);
   ShowMessage(BuildToolsVer);
@@ -395,25 +395,6 @@ begin
    QGetCurrJob.ParamByName('JobName').AsString := Trim(LEJobName.Text);
    QGetCurrJob.Open;
 
-//   if ((QGetCurrJob.RecordCount > 0) and
-//      ((MJars.Lines.Text <> IniStrToMemoStr(QGetCurrJob.FieldByName('Dependencies').AsString)) or
-//       (MJars.Lines.Text <> IniStrToMemoStr(QGetCurrJob.FieldByName('AddDependencies').AsString)) or
-//       (MJars.Lines.Text <> IniStrToMemoStr(QGetCurrJob.FieldByName('ExclJNI').AsString)) or
-//       (MJars.Lines.Text <> IniStrToMemoStr(QGetCurrJob.FieldByName('ExclFinal').AsString)))) or
-//     (QGetCurrJob.RecordCount = 0)
-//   then
-//      begin
-//
-//         QInsHist.ParamByName('JobName').AsString := Trim(LEJobName.Text);
-//         QInsHist.ParamByName('SaveDate').AsDateTime := Now;
-//         QInsHist.ParamByName('Dependencies').AsString := MemoStrToIniStr(MJars.Lines.Text);
-//         QInsHist.ParamByName('AddDependencies').AsString := MemoStrToIniStr(MAddJars.Lines.Text);
-//         QInsHist.ParamByName('ExclJNI').AsString := MemoStrToIniStr(MExclJars.Lines.Text);
-//         QInsHist.ParamByName('ExclFinal').AsString := MemoStrToIniStr(MExclFinal.Lines.Text);
-//         QInsHist.ExecSQL;
-//
-//      end;
-
    if ((QGetCurrJob.RecordCount > 0) and
       ((MJars.Lines.Text <> QGetCurrJob.FieldByName('Dependencies').AsString) or
        (MJars.Lines.Text <> QGetCurrJob.FieldByName('AddDependencies').AsString) or
@@ -430,6 +411,26 @@ begin
          QInsHist.ParamByName('ExclJNI').AsString := MExclJars.Lines.Text;
          QInsHist.ParamByName('ExclFinal').AsString := MExclFinal.Lines.Text;
          QInsHist.ExecSQL;
+
+      end;
+
+   if QGetCurrJob.RecordCount = 0
+   then
+      begin
+
+         CBProjJobs.Items.Text := '';
+
+         TJobs.First;
+
+         while not TJobs.Eof do
+            begin
+               CBProjJobs.Items.Add(TJobs.FieldByName('JobName').AsString);
+               TJobs.Next;
+            end;
+
+         if CBProjJobs.Items.Count > 0
+         then
+            LoadJob(CBProjJobs.Items[CBProjJobs.Items.Count - 1]);
 
       end;
 
@@ -461,11 +462,6 @@ begin
    QGetCurrJob.Close;
    QGetCurrJob.ParamByName('JobName').AsString := JobNam;
    QGetCurrJob.Open;
-
-//   MJars.Lines.Text := IniStrToMemoStr(QGetCurrJob.FieldByName('Dependencies').AsString);
-//   MAddJars.Lines.Text := IniStrToMemoStr(QGetCurrJob.FieldByName('AddDependencies').AsString);
-//   MExclJars.Lines.Text := IniStrToMemoStr(QGetCurrJob.FieldByName('ExclJNI').AsString);
-//   MExclFinal.Lines.Text := IniStrToMemoStr(QGetCurrJob.FieldByName('ExclFinal').AsString);
 
    MJars.Lines.Text := QGetCurrJob.FieldByName('Dependencies').AsString;
    MAddJars.Lines.Text := QGetCurrJob.FieldByName('AddDependencies').AsString;
@@ -1201,7 +1197,7 @@ begin
                  LStatus.Caption := 'Processing Resources.';
 
                  PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
-                 AndroidSDK := PlatformSDKServices.GetDefaultForPlatform(cAndroidArm32Platform) as IOTAPlatformSDKAndroid;
+                 AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
                  AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
                  BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('/', ExtractFileDir(AaptPath)) + 1);
                  SDKApiLevelPath := '"' + AndroidSDK.SDKApiLevel + '\Android.jar"';
@@ -2419,6 +2415,20 @@ begin
 
          TJobs.FindKey([QGetJobByName.FieldByName('ID').AsInteger]);
          TJobs.Delete;
+
+         CBProjJobs.Items.Text := '';
+
+         TJobs.First;
+
+         while not TJobs.Eof do
+            begin
+               CBProjJobs.Items.Add(TJobs.FieldByName('JobName').AsString);
+               TJobs.Next;
+            end;
+
+         if CBProjJobs.Items.Count > 0
+         then
+            LoadJob(CBProjJobs.Items[CBProjJobs.Items.Count - 1]);
 
       end;
 

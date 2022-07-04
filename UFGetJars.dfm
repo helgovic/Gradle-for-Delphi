@@ -504,7 +504,7 @@ object FGetJars: TFGetJars
       ''
       'COMMIT TRANSACTION;')
     Left = 481
-    Top = 75
+    Top = 73
   end
   object QGetCurrJob: TFDQuery
     Connection = FDCJobs
@@ -630,8 +630,8 @@ object FGetJars: TFGetJars
   object TParms: TFDTable
     Connection = FDCJobs
     TableName = 'Parms'
-    Left = 278
-    Top = 191
+    Left = 280
+    Top = 193
   end
   object QDelRepositories: TFDQuery
     Connection = FDCJobs

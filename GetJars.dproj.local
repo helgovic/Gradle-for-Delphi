@@ -10,15 +10,15 @@
     <Transaction>1899-12-30 00:00:00.000.353,D:\GetJars\URunBat.pas=</Transaction>
     <Transaction>1899-12-30 00:00:00.000.775,=TMSVCLUIPackPkgDXE14.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.884,=TMSVCLUIPackPkgExDXE14.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.524,=tmsdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.618,=tmsdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.285,D:\GetJars\UFGetJars.dfm=D:\GetJars\Unit1.dfm</Transaction>
     <Transaction>1899-12-30 00:00:00.000.388,=rtl.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.285,D:\GetJars\UFGetJars.pas=D:\GetJars\Unit1.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.767,=vclwinx.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.265,D:\Downloads\XE11\GetJars\android.bmp=</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.625,=D:\Downloads\XE11\GetJars\android.bmp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.556,D:\Deplhi\GetJars\UAddRep.pas=D:\Deplhi\GetJars\Unit1.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.635,=D:\Downloads\XE11\GetJars\android.bmp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.265,D:\Downloads\XE11\GetJars\android.bmp=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.556,D:\Deplhi\GetJars\UAddRep.pas=D:\Deplhi\GetJars\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.625,=D:\Downloads\XE11\GetJars\android.bmp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.051,=vclFireDAC.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.838,D:\Downloads\XE11\GetJars\UFHistory.pas=D:\Downloads\XE11\GetJars\Unit1.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.955,=D:\Downloads\XE11\GetJars\android.bmp</Transaction>
@@ -29,10 +29,10 @@
     <Transaction>1899-12-30 00:00:00.000.345,D:\Deplhi\GetJars\UFRepositories.pas=D:\Deplhi\GetJars\Unit1.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.416,=D:\Deplhi\GetJars\System.Zip.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.969,=FireDACCommonDriver.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.198,=tmsexdXE7.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.586,=tmsexdXE7.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.567,=tmsexdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.208,=tmsexdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.567,=tmsexdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.553,=tmsexdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.681,=tmsexdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.006,=FireDACCommon.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.343,=D:\Downloads\XE11\GetJars\android.png</Transaction>
     <Transaction>1899-12-30 00:00:00.000.901,D:\Downloads\XE11\GetJars\android.png=</Transaction>
@@ -40,16 +40,16 @@
     <Transaction>1899-12-30 00:00:00.000.071,=D:\GetJars\android.bmp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.919,=FireDAC.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.853,=D:\Deplhi\GetJars\Unit1.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.553,=tmsexdXE7.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.681,=tmsexdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.586,=tmsexdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.198,=tmsexdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.838,D:\Downloads\XE11\GetJars\UFHistory.dfm=D:\Downloads\XE11\GetJars\Unit1.dfm</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.151,=tmsdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.524,=tmsdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.099,=FireDACSqliteDriver.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.556,D:\Deplhi\GetJars\UAddRep.dfm=D:\Deplhi\GetJars\Unit1.dfm</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.552,=tmsdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.475,=tmsdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.156,=tmsdXE7.dcp</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.618,=tmsdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.552,=tmsdXE7.dcp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.151,=tmsdXE7.dcp</Transaction>
     <Transaction>1899-12-30 00:00:00.000.211,D:\GetJars\Unit1.pas=D:\GetJars\UFAndroidManifest.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.211,D:\GetJars\Unit1.dfm=D:\GetJars\UFAndroidManifest.dfm</Transaction>
     <Transaction>1899-12-30 00:00:00.000.320,=D:\Downloads\XE11\GetJars\Unit1.pas</Transaction>
@@ -78,8 +78,6 @@
     <File Path="FireDACCommonDriver.dcp"/>
     <File Path="FireDACSqliteDriver.dcp"/>
     <File Path="Jcl.dcp"/>
-    <File Path="tmsdXE7.dcp"/>
-    <File Path="tmsexdXE7.dcp"/>
     <File Path="vclFireDAC.dcp"/>
   </ProjectSortOrder>
 </BorlandProject>
