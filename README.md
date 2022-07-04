@@ -36,6 +36,10 @@ When you have finished coding against the JNI file, shrink it with "Shrink JNI F
 
 When you are ready to compile your app, compile project jar.
 
+RESOURCES
+
+Processing of resouces from libraries will merge resources from your project (Place your resources in YOURPROJECT\Res), with resouces from dependencies, and place these in folder YOURPROJECT\MergedRes. A R.jar containing R.class'es for the libraries will be generated and added to project. Try if your app runs without using this feature, becourse mostly it is not necessary. 
+
 EXCLUSION PARAMETERS
 
 You can enter three types of parameters:
