@@ -16,8 +16,8 @@ File_13=TSourceModule,'D:\Deplhi\Explorer\ULan.pas',0,1,46,21,55,0,0,,
 
 [Modules]
 Module0=D:\Downloads\XE11\GetJars\UFGetJars.pas
-Module1=D:\Downloads\XE11\GetJars\GetJars.dproj
-Module2=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas
+Module1=c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas
+Module2=D:\Downloads\XE11\GetJars\GetJars.dproj
 Module3=D:\Downloads\XE11\GetJars\UFRepositories.pas
 Module4=D:\Downloads\XE11\GetJars\UFHistory.pas
 Module5=D:\Downloads\XE11\GetJars\UFAndroidManifest.pas
@@ -29,11 +29,11 @@ EditWindowCount=1
 [D:\Downloads\XE11\GetJars\UFGetJars.pas]
 ModuleType=TSourceModule
 
-[D:\Downloads\XE11\GetJars\GetJars.dproj]
-ModuleType=TBaseProject
-
 [c:\program files (x86)\embarcadero\studio\22.0\source\ToolsAPI\ToolsAPI.pas]
 ModuleType=TSourceModule
+
+[D:\Downloads\XE11\GetJars\GetJars.dproj]
+ModuleType=TBaseProject
 
 [D:\Downloads\XE11\GetJars\UFRepositories.pas]
 ModuleType=TSourceModule
@@ -92,10 +92,6 @@ BottomMiddlePanelClients=DockSite0,GraphDrawingModel
 BottomMiddelPanelData=0000080001020200000009000000446F636B536974653010000000477261706844726177696E67566965773C29000000000000025E06000000000000FFFFFFFF
 
 [View0]
-CustomEditViewType=TOTACustomEditView
-OTAEditViewType=WelcomePage.MainPage
-
-[View1]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\GetJars.dpk
 CursorX=22
@@ -106,7 +102,7 @@ Elisions=
 Bookmarks=
 EditViewName=D:\Downloads\XE11\GetJars\GetJars.dpk
 
-[View2]
+[View1]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UGetJars.pas
 CursorX=1
@@ -117,7 +113,7 @@ Elisions=
 Bookmarks=
 EditViewName=D:\Downloads\XE11\GetJars\UGetJars.pas
 
-[View3]
+[View2]
 CustomEditViewType=TEditView
 Module=D:\Downloads\XE11\GetJars\UFGetJars.pas
 CursorX=33
@@ -127,6 +123,10 @@ LeftCol=1
 Elisions=
 Bookmarks={1,3021,10}{2,2898,16}
 EditViewName=D:\Downloads\XE11\GetJars\UFGetJars.pas
+
+[View3]
+CustomEditViewType=TOTACustomEditView
+OTAEditViewType=WelcomePage.MainPage
 
 [View4]
 CustomEditViewType=TEditView
@@ -197,11 +197,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=1114
+Height=2962
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1114
+ClientHeight=2962
 TBDockHeight=219
 LRDockWidth=13604
 Dockable=1
@@ -344,8 +344,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=400
-Top=1016
+Left=0
+Top=0
 Width=276
 Height=362
 MaxLeft=-1
@@ -369,11 +369,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=1114
+Height=2962
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1114
+ClientHeight=2962
 TBDockHeight=410
 LRDockWidth=4953
 Dockable=1
@@ -388,11 +388,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=1114
+Height=2962
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1114
+ClientHeight=2962
 TBDockHeight=219
 LRDockWidth=7406
 Dockable=1
@@ -411,11 +411,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=1114
+Height=2962
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1114
+ClientHeight=2962
 TBDockHeight=1533
 LRDockWidth=3484
 Dockable=1
@@ -430,11 +430,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=1114
+Height=2962
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1114
+ClientHeight=2962
 TBDockHeight=2067
 LRDockWidth=3484
 Dockable=1
@@ -549,8 +549,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=3824
-Top=136
+Left=0
+Top=0
 Width=1849
 Height=3143
 MaxLeft=-1
@@ -609,11 +609,11 @@ State=0
 Left=0
 Top=0
 Width=3823
-Height=1114
+Height=2962
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1114
+ClientHeight=2962
 TBDockHeight=1543
 LRDockWidth=8740
 Dockable=1
@@ -635,11 +635,11 @@ State=0
 Left=0
 Top=0
 Width=2000
-Height=8476
+Height=4200
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=2000
-ClientHeight=8476
+ClientHeight=4200
 TBDockHeight=3676
 LRDockWidth=1896
 Dockable=1
@@ -759,12 +759,12 @@ State=0
 Left=8
 Top=8
 Width=3823
-Height=1381
+Height=3229
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3823
-ClientHeight=1381
-TBDockHeight=1381
+ClientHeight=3229
+TBDockHeight=3229
 LRDockWidth=3823
 Dockable=1
 StayOnTop=0

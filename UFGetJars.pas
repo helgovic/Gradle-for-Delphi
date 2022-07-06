@@ -277,12 +277,12 @@ var
    BuildToolsVer: string;
 
 begin
-  PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
-  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
-  AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
-  BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('\', ExtractFileDir(AaptPath)) + 1);
-  ShowMessage(BuildToolsVer);
-
+//  PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
+//  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
+//  AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
+//  BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('\', ExtractFileDir(AaptPath)) + 1);
+//  ShowMessage(BuildToolsVer);
+   raise Exception.Create('Test');
 end;
 
 procedure TFGetJars.CBProjJobsSelect(Sender: TObject);
@@ -736,7 +736,7 @@ begin
               if not DeleteDirectory(MergResDir, False)
               then
                  begin
-                    ShowMessage('There was an error deleting GradTmp Folder');
+                    ShowMessage('There was an error deleting MergedRes Folder');
                     Exit;
                  end;
 
@@ -1053,7 +1053,7 @@ begin
                           zipFile.Open(FileList[x], zmRead);
                           zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
                        except
-                          ShowException(ExceptObject, ExceptAddr);
+                          Exit;
                        end;
 
                        TThread.Synchronize(TThread.CurrentThread,
@@ -1088,7 +1088,7 @@ begin
                              zipFile.Open(FileList[x], zmRead);
                              zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
                           except
-                             ShowException(ExceptObject, ExceptAddr);
+                             Exit;
                           end;
 
                        end;
@@ -2366,9 +2366,7 @@ begin
                DeleteDirectory(LibsDir, False);
 
          except
-
-            ShowException(ExceptObject, ExceptAddr);
-
+            Exit;
          end;
 
       finally
@@ -2467,253 +2465,304 @@ begin
    begin
 
       try
-
-         MStatus.Lines.Text := '';
-         LStatus.Font.Color := clGreen;
-
-         TThread.Synchronize(TThread.CurrentThread,
-         procedure
-         begin
-            LStatus.Caption := 'Building Gradle';
-         end);
-
-         ProjDir := ExtractFilePath(GetCurrentProjectFileName);
-         LibsDir := ProjDir + 'GradLibs';
-         TmpDir := ProjDir + 'GradTmp';
-
-         if not DirectoryExists(ProjDir + 'Libs')
-         then
-            CreateDir(ProjDir + 'Libs');
-
-         if DirectoryExists(LibsDir)
-         then
-            if not DeleteDirectory(LibsDir, False)
-            then
-               begin
-                  ShowMessage('There was an error deleting GradLibs Folder');
-                  Exit;
-               end;
-
-         if DirectoryExists(TmpDir)
-         then
-            if not DeleteDirectory(TmpDir, False)
-            then
-               begin
-                  ShowMessage('There was an error deleting GradTmp Folder');
-                  Exit;
-               end;
-
-         if not CreateDir(LibsDir)
-         then
-            begin
-               ShowMessage('There was an error creating GradLib Folder');
-               Exit;
-            end;
-
-         if not CreateDir(TmpDir)
-         then
-            begin
-               ShowMessage('There was an error creating GradTmp Folder');
-               Exit;
-            end;
-
          try
 
-            with BorlandIDEServices as IOTAModuleServices do
-               Modul := FindModule(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+            MStatus.Lines.Text := '';
+            LStatus.Font.Color := clGreen;
+
+            TThread.Synchronize(TThread.CurrentThread,
+            procedure
+            begin
+               LStatus.Caption := 'Building Gradle';
+            end);
+
+            ProjDir := ExtractFilePath(GetCurrentProjectFileName);
+            LibsDir := ProjDir + 'GradLibs';
+            TmpDir := ProjDir + 'GradTmp';
+
+            if not DirectoryExists(ProjDir + 'Libs')
+            then
+               CreateDir(ProjDir + 'Libs');
+
+            if DirectoryExists(LibsDir)
+            then
+               if not DeleteDirectory(LibsDir, False)
+               then
+                  begin
+                     ShowMessage('There was an error deleting GradLibs Folder');
+                     Exit;
+                  end;
+
+            if DirectoryExists(TmpDir)
+            then
+               if not DeleteDirectory(TmpDir, False)
+               then
+                  begin
+                     ShowMessage('There was an error deleting GradTmp Folder');
+                     Exit;
+                  end;
+
+            if not CreateDir(LibsDir)
+            then
+               begin
+                  ShowMessage('There was an error creating GradLib Folder');
+                  Exit;
+               end;
+
+            if not CreateDir(TmpDir)
+            then
+               begin
+                  ShowMessage('There was an error creating GradTmp Folder');
+                  Exit;
+               end;
 
             try
 
-               if Assigned(Modul)
-               then
+               with BorlandIDEServices as IOTAModuleServices do
+                  Modul := FindModule(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+
+               try
+
+                  if Assigned(Modul)
+                  then
+                     begin
+
+                        Modul.Save(False, True);
+
+                        if not Modul.CloseModule(True)
+                        then
+                           begin
+                              ShowMessage('There was an error closing module ' + ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+                              Exit;
+                           end;
+
+                     end;
+
+               except
+                  Exit;
+               end;
+
+            except
+               Exit;
+            end;
+
+            if FileExists(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas')
+            then
+               DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas');
+
+            FileLines := TStringList.Create;
+
+            try
+
+               FileLines.Add('repositories {');
+
+              TRepositories.First;
+
+              while not TRepositories.Eof do
+                 begin
+                    FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
+                    TRepositories.Next;
+                 end;
+
+               FileLines.Add('}');
+               FileLines.Add('configurations {');
+               FileLines.Add('');
+               FileLines.Add('    myConfig');
+               FileLines.Add('}');
+               FileLines.Add('');
+               FileLines.Add('dependencies {');
+
+               for i := 0 to MJars.Lines.Count - 1 do
                   begin
 
-                     Modul.Save(False, True);
-
-                     if not Modul.CloseModule(True)
+                     if not RemoveComm(MJars.Lines[i], TmpStr)
                      then
-                        begin
-                           ShowMessage('There was an error closing module ' + ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
-                           Exit;
-                        end;
+                        Continue;
+
+                     Found := False;
+
+                     for y := 0 to FileLines.count - 1 do
+                        if Pos(TmpStr, FileLines[y]) > 0
+                        then
+                           Found := True;
+
+                     if Found
+                     then
+                        Continue;
+
+                     FileLines.Add('    myConfig ' + TmpStr);
 
                   end;
 
-            except
+               FileLines.Add('');
+               FileLines.Add('}');
+               FileLines.Add('');
+               FileLines.Add('task getDeps(type: Copy) {');
+               FileLines.Add('    from configurations.myConfig');
+               FileLines.Add('    into ''' + StringReplace(LibsDir, '\', '/', [rfReplaceAll]) + '''');
+               FileLines.Add('}');
 
-               ShowException(ExceptObject, ExceptAddr);
-               Exit;
+               FileLines.SaveToFile(TmpDir + '\Build.gradle');
 
-            end;
+               FileLines.Clear;
 
-         except
+               FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+               FileLines.Add('cd "' + TmpDir + '"');
+               FileLines.Add('Gradle');
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
 
-            ShowException(ExceptObject, ExceptAddr);
-            Exit;
-
-         end;
-
-         if FileExists(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas')
-         then
-            DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas');
-
-         FileLines := TStringList.Create;
-
-         try
-
-            FileLines.Add('repositories {');
-
-           TRepositories.First;
-
-           while not TRepositories.Eof do
-              begin
-                 FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                 TRepositories.Next;
-              end;
-
-            FileLines.Add('}');
-            FileLines.Add('configurations {');
-            FileLines.Add('');
-            FileLines.Add('    myConfig');
-            FileLines.Add('}');
-            FileLines.Add('');
-            FileLines.Add('dependencies {');
-
-            for i := 0 to MJars.Lines.Count - 1 do
-               begin
-
-                  if not RemoveComm(MJars.Lines[i], TmpStr)
-                  then
-                     Continue;
-
-                  Found := False;
-
-                  for y := 0 to FileLines.count - 1 do
-                     if Pos(TmpStr, FileLines[y]) > 0
-                     then
-                        Found := True;
-
-                  if Found
-                  then
-                     Continue;
-
-                  FileLines.Add('    myConfig ' + TmpStr);
-
-               end;
-
-            FileLines.Add('');
-            FileLines.Add('}');
-            FileLines.Add('');
-            FileLines.Add('task getDeps(type: Copy) {');
-            FileLines.Add('    from configurations.myConfig');
-            FileLines.Add('    into ''' + StringReplace(LibsDir, '\', '/', [rfReplaceAll]) + '''');
-            FileLines.Add('}');
-
-            FileLines.SaveToFile(TmpDir + '\Build.gradle');
-
-            FileLines.Clear;
-
-            FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-            FileLines.Add('cd "' + TmpDir + '"');
-            FileLines.Add('Gradle');
-            FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-            then
-               begin
-                  ShowMessage('There was an error running Gradle on Build.gradle. Please check Output');
-                  Exit;
-               end;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add('');
-               LStatus.Caption := 'Downloading libraries';
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-            end);
-
-            FileLines.DisposeOf;
-            FileLines := TStringList.Create;
-            FileLines.Clear;
-
-            FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-            FileLines.Add('cd "' + TmpDir + '"');
-            FileLines.Add('Gradle -q getDeps');
-            FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-            then
-               begin
-                  ShowMessage('There was an error running download task. Please check Output');
-                  Exit;
-               end;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add('');
-               MStatus.Lines.Add('Libraries downloaded');
-               MStatus.Lines.Add('');
-               LStatus.Caption := 'Copying Additional Dependencies';
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-            end);
-
-            ASPB.Max := MAddJars.Lines.Count;
-            ASPB.Position := 0;
-
-            for i := 0 to MAddJars.Lines.Count - 1 do
-               begin
-
-                  if not RemoveComm(MAddJars.Lines[i], TmpStr)
-                  then
-                     Continue;
-
-                  if not FileExists(TmpStr)
-                  then
-                     begin
-                        ShowMessage('File ' + TmpStr + ' not found');
-                        Exit;
-                     end;
-
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
                   begin
-                     MStatus.Lines.Add('Copying: ' + TmpStr);
-                     MStatus.Lines.Add('');
-                     SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                  end);
+                     ShowMessage('There was an error running Gradle on Build.gradle. Please check Output');
+                     Exit;
+                  end;
 
-                  if not CopyFile(PChar(TmpStr), PChar(LibsDir + '\' + EXtractFileName(TmpStr)), False)
-                  then
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add('');
+                  LStatus.Caption := 'Downloading libraries';
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+               end);
+
+               FileLines.DisposeOf;
+               FileLines := TStringList.Create;
+               FileLines.Clear;
+
+               FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+               FileLines.Add('cd "' + TmpDir + '"');
+               FileLines.Add('Gradle -q getDeps');
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
+                  begin
+                     ShowMessage('There was an error running download task. Please check Output');
+                     Exit;
+                  end;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add('');
+                  MStatus.Lines.Add('Libraries downloaded');
+                  MStatus.Lines.Add('');
+                  LStatus.Caption := 'Copying Additional Dependencies';
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+               end);
+
+               ASPB.Max := MAddJars.Lines.Count;
+               ASPB.Position := 0;
+
+               for i := 0 to MAddJars.Lines.Count - 1 do
+                  begin
+
+                     if not RemoveComm(MAddJars.Lines[i], TmpStr)
+                     then
+                        Continue;
+
+                     if not FileExists(TmpStr)
+                     then
+                        begin
+                           ShowMessage('File ' + TmpStr + ' not found');
+                           Exit;
+                        end;
+
                      TThread.Synchronize(TThread.CurrentThread,
                      procedure
                      begin
-                        MStatus.Lines.Add('Error copying: ' + MAddJars.Lines[i]);
+                        MStatus.Lines.Add('Copying: ' + TmpStr);
+                        MStatus.Lines.Add('');
                         SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                        Exit;
                      end);
 
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
+                     if not CopyFile(PChar(TmpStr), PChar(LibsDir + '\' + EXtractFileName(TmpStr)), False)
+                     then
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           MStatus.Lines.Add('Error copying: ' + MAddJars.Lines[i]);
+                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                           Exit;
+                        end);
+
+                     TThread.Synchronize(TThread.CurrentThread,
+                     procedure
+                     begin
+                        ASPB.Position := i + 1;
+                     end);
+
+                  end;
+
+               FileList := TDirectory.GetFiles(LibsDir, '*.aar', TSearchOption.soTopDirectoryOnly);
+
+               ASPB.Max := Length(FileList);
+
+               LStatus.Caption := 'Extracting libraries';
+
+               zipFile := TZipFile.Create;
+
+               for x := 0 to High(FileList) do
+                  if zipFile.IsValid(FileList[x])
+                  then
+                     begin
+
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                           MStatus.Lines.Add('');
+                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                        end);
+
+                        try
+                           zipFile.Open(FileList[x], zmRead);
+                           zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
+                        except
+                           Exit;
+                        end;
+
+                        TThread.Synchronize(TThread.CurrentThread,
+                        procedure
+                        begin
+                           ASPB.Position := x + 1;
+                        end);
+
+                     end;
+
+               FileList := nil;
+               FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
+
+               ASPB.Max := Length(FileList);
+
+               for x := 0 to High(FileList) do
                   begin
-                     ASPB.Position := i + 1;
-                  end);
 
-               end;
+                     ExcludeFile := False;
 
-            FileList := TDirectory.GetFiles(LibsDir, '*.aar', TSearchOption.soTopDirectoryOnly);
+                     for i := 0 to MExclJars.Lines.Count - 1 do
+                        begin
 
-            ASPB.Max := Length(FileList);
+                           if not RemoveComm(MExclJars.Lines[i], TmpStr)
+                           then
+                              Continue;
 
-            LStatus.Caption := 'Extracting libraries';
+                           if (TmpStr[1] <> '/') and
+                              (TmpStr[1] <> '¤')
+                           then
+                              if Pos(AnsiLowerCase(TmpStr), AnsiLowerCase(FileList[x])) > 0
+                              then
+                                 begin
+                                    ExcludeFile := True;
+                                    Break;
+                                 end;
 
-            zipFile := TZipFile.Create;
+                        end;
 
-            for x := 0 to High(FileList) do
-               if zipFile.IsValid(FileList[x])
-               then
-                  begin
+                     if ExcludeFile
+                     then
+                        Continue;
 
                      TThread.Synchronize(TThread.CurrentThread,
                      procedure
@@ -2723,12 +2772,18 @@ begin
                         SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                      end);
 
-                     try
-                        zipFile.Open(FileList[x], zmRead);
-                        zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
-                     except
-                        ShowException(ExceptObject, ExceptAddr);
-                     end;
+                     if zipFile.IsValid(FileList[x])
+                     then
+                        begin
+
+                           try
+                              zipFile.Open(FileList[x], zmRead);
+                              zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
+                           except
+                              Exit;
+                           end;
+
+                        end;
 
                      TThread.Synchronize(TThread.CurrentThread,
                      procedure
@@ -2738,307 +2793,249 @@ begin
 
                   end;
 
-            FileList := nil;
-            FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
+               zipFile.Close;
 
-            ASPB.Max := Length(FileList);
-
-            for x := 0 to High(FileList) do
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
                begin
+                  MStatus.Lines.Add('Classes Extracted');
+                  MStatus.Lines.Add('');
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+               end);
 
-                  ExcludeFile := False;
+               if FileExists(LibsDir + '\ExtractedClasses\module-info.class')
+               then
+                  DeleteFile(LibsDir + '\ExtractedClasses\module-info.class');
 
-                  for i := 0 to MExclJars.Lines.Count - 1 do
-                     begin
+               if DirectoryExists(LibsDir + '\ExtractedClasses\META-INF')
+               then
+                  DeleteDirectory(LibsDir + '\ExtractedClasses\META-INF', False);
 
-                        if not RemoveComm(MExclJars.Lines[i], TmpStr)
-                        then
-                           Continue;
+               FileList := nil;
+               FileList := TDirectory.GetFiles(LibsDir + '\ExtractedClasses', '*.*', TSearchOption.soTopDirectoryOnly);
 
-                        if (TmpStr[1] <> '/') and
-                           (TmpStr[1] <> '¤')
-                        then
-                           if Pos(AnsiLowerCase(TmpStr), AnsiLowerCase(FileList[x])) > 0
-                           then
-                              begin
-                                 ExcludeFile := True;
-                                 Break;
-                              end;
+               for i := 0 to High(FileList) do
+                  DeleteFile(FileList[i]);
 
-                     end;
+               FileLines.DisposeOf;
+               FileLines := TStringList.Create;
 
-                  if ExcludeFile
-                  then
-                     Continue;
-
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
+               for i := 0 to MExclJars.Lines.Count - 1 do
                   begin
-                     MStatus.Lines.Add('Extracting: ' + FileList[x]);
-                     MStatus.Lines.Add('');
-                     SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                  end);
 
-                  if zipFile.IsValid(FileList[x])
-                  then
-                     begin
+                     if not RemoveComm(MExclJars.Lines[i], TmpStr)
+                     then
+                        Continue;
 
-                        try
-                           zipFile.Open(FileList[x], zmRead);
-                           zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
-                        except
-                           ShowException(ExceptObject, ExceptAddr);
+                     if TmpStr[1] = '/'
+                     then
+                        DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  TmpStr), False);
+
+                  end;
+
+               for i := 0 to MExclJars.Lines.Count - 1 do
+                  begin
+
+                     if not RemoveComm(MExclJars.Lines[i], TmpStr)
+                     then
+                        Continue;
+
+                     if TmpStr[1] = '¤'
+                     then
+                        DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  TmpStr));
+
+                  end;
+
+               LStatus.Caption := 'Creating ' + LEJobName.Text + '.jar';
+
+               FileLines.Add(ExtractFileDrive(LibsDir));
+               FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
+               FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
+                  begin
+                     ShowMessage('There was an error creating' + LEJobName.Text + '.jar. Please check Output');
+                     Exit;
+                  end;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add(LEJobName.Text + '.jar Created');
+                  MStatus.Lines.Add('');
+                  LStatus.Caption := 'Creating unit AndroidApi.JNI.' + LEJobName.Text + '.pas';
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+               end);
+
+               DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
+               MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar'));
+
+               FileLines.DisposeOf;
+               FileLines := TStringList.Create;
+
+               FileLines.Add(ExtractFileDrive(LEJ2OLoc.Text));
+               FileLines.Add('cd "' + LEJ2OLoc.Text + '"');
+               FileLines.Add('Java2OP -jar ' + LEJobName.Text + '.jar -unit AndroidApi.JNI.' + LEJobName.Text);
+               FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+               then
+                  begin
+                     ShowMessage('There was an error running Java2OP on ' + LEJobName.Text + '.jar. Please check Output');
+                     Exit;
+                  end;
+
+               TThread.Synchronize(TThread.CurrentThread,
+               procedure
+               begin
+                  MStatus.Lines.Add('unit AndroidApi.JNI.' + LEJobName.Text + '.pas Created');
+                  MStatus.Lines.Add('');
+                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+               end);
+
+               DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
+               DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+               MoveFile(PChar(LEJ2OLoc.Text + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
+
+               FileLines.DisposeOf;
+               FileLines := TStringList.Create;
+               FileLines.LoadFromFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
+
+               for i := 0 to FileLines.Count - 1 do
+                  begin
+
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure implementation(', '//procedure implementation(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function implementation(', '//function implementation(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure initialization(', '//procedure initialization(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function initialization(', '//function initialization(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure finalization(', '//procedure initialization(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function finalization(', '//function initialization(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function SHR(', '//function SHR(', [rfReplaceAll, rfIgnoreCase]);                  FileLines[i] := StringReplace(FileLines[i], 'function SHR(', '//function SHR(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function SHL(', '//function SHL(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure SHR(', '//procedure SHR(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure SHL(', '//procedure SHL(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function INLINE(', '//function INLINE(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure INLINE(', '//procedure INLINE(', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function _Getthis$', '//function _Getthis$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'property this$', '//property this$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function _Get.', '//function _Get.', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure _Set.', '//procedure _Set.', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'property .', '//property .', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function _Getval$', '//function _Getval$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'property val$', '//property val$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'property $', '//property $', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function _Get$', '//function _Get$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function then(', '//function then(', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'property class$', '//property class$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'procedure _Setclass$', '//procedure _Setclass$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'function _Getclass$', '//function _Getclass$', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], 'property library', '//property library', [rfReplaceAll, rfIgnoreCase]);
+                     FileLines[i] := StringReplace(FileLines[i], '//function getResult: J; cdecl; overload;', 'function getResult: JObject; cdecl; overload;', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], '//function getResult: J; cdecl; overload;', 'function getResult: JObject; cdecl; overload;', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], '//function getResult(P1: Jlang_Class): J; cdecl; overload;', 'function getResult(P1: Jlang_Class): JObject; cdecl; overload;', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], '//procedure onSuccess(P1: J); cdecl;', 'procedure onSuccess(P1: JObject); cdecl;', [rfReplaceAll]);
+                     FileLines[i] := StringReplace(FileLines[i], '//Deprecated', '', [rfReplaceAll]);
+
+                     if Pos('(.', FileLines[i]) > 0
+                     then
+                        FileLines[i] := '//' + FileLines[i];
+
+                     if Pos(': JOffsetDateTime', FileLines[i]) > 0
+                     then
+                        FileLines[i] := StringReplace(FileLines[i], '//', '', []);
+
+                     if ((Pos(': J;', FileLines[i]) > 0) or
+                         (Pos(': J)', FileLines[i]) > 0))
+                     then
+                        begin
+                           FileLines[i] := StringReplace(FileLines[i], ': J;', ': JObject;', [rfReplaceAll]);
+                           FileLines[i] := StringReplace(FileLines[i], ': J)', ': JObject)', [rfReplaceAll]);
+                           FileLines[i] := StringReplace(FileLines[i], '//', '', []);
                         end;
 
-                     end;
+                     if (Pos('(1: J', FileLines[i]) > 0) or
+                        (Pos('(2: J', FileLines[i]) > 0) or
+                        (Pos('(3: J', FileLines[i]) > 0) or
+                        (Pos('(4: J', FileLines[i]) > 0) or
+                        (Pos('(5: J', FileLines[i]) > 0) or
+                        (Pos('(6: J', FileLines[i]) > 0) or
+                        (Pos('(7: J', FileLines[i]) > 0) or
+                        (Pos('(8: J', FileLines[i]) > 0) or
+                        (Pos('(9: J', FileLines[i]) > 0) or
+                        (Pos('(0: J', FileLines[i]) > 0) or
+                        (Pos(' 1: J', FileLines[i]) > 0) or
+                        (Pos(' 2: J', FileLines[i]) > 0) or
+                        (Pos(' 3: J', FileLines[i]) > 0) or
+                        (Pos(' 4: J', FileLines[i]) > 0) or
+                        (Pos(' 5: J', FileLines[i]) > 0) or
+                        (Pos(' 6: J', FileLines[i]) > 0) or
+                        (Pos(' 7: J', FileLines[i]) > 0) or
+                        (Pos(' 8: J', FileLines[i]) > 0) or
+                        (Pos(' 9: J', FileLines[i]) > 0) or
+                        (Pos(' 0: J', FileLines[i]) > 0) or
+                        (Pos(' 0: J', FileLines[i]) > 0) or
+                        (Pos('(init: ', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' inline:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' inline;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos('(inline:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' inline(', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' inherited:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' inherited;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' inherited(', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos('(inherited:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' shr:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' shr;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' shr(', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos('(shr:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' shl:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' shl;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' shl(', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos('(shl:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' implementation:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' implementation;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' initialzation:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' initialzation;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' finalization:', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos(' finalization;', AnsiLowerCase(FileLines[i])) > 0) or
+                        (Pos('procedure -', FileLines[i]) > 0) or
+                        (Pos('function -', FileLines[i]) > 0)
+                     then
+                        FileLines[i] := '//' + FileLines[i];
 
-                  TThread.Synchronize(TThread.CurrentThread,
-                  procedure
-                  begin
-                     ASPB.Position := x + 1;
-                  end);
+                  end;
 
-               end;
+               FileLines.SaveToFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
 
-            zipFile.Close;
+               DeleteDirectory(TmpDir, False);
 
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add('Classes Extracted');
-               MStatus.Lines.Add('');
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-            end);
+               if TSKeepLibs.State = tssOff
+               then
+                  DeleteDirectory(LibsDir, False);
 
-            if FileExists(LibsDir + '\ExtractedClasses\module-info.class')
-            then
-               DeleteFile(LibsDir + '\ExtractedClasses\module-info.class');
-
-            if DirectoryExists(LibsDir + '\ExtractedClasses\META-INF')
-            then
-               DeleteDirectory(LibsDir + '\ExtractedClasses\META-INF', False);
-
-            FileList := nil;
-            FileList := TDirectory.GetFiles(LibsDir + '\ExtractedClasses', '*.*', TSearchOption.soTopDirectoryOnly);
-
-            for i := 0 to High(FileList) do
-               DeleteFile(FileList[i]);
-
-            FileLines.DisposeOf;
-            FileLines := TStringList.Create;
-
-            for i := 0 to MExclJars.Lines.Count - 1 do
-               begin
-
-                  if not RemoveComm(MExclJars.Lines[i], TmpStr)
-                  then
-                     Continue;
-
-                  if TmpStr[1] = '/'
-                  then
-                     DeleteDirectory(LibsDir + '\ExtractedClasses\' + StrAfter('/',  TmpStr), False);
-
-               end;
-
-            for i := 0 to MExclJars.Lines.Count - 1 do
-               begin
-
-                  if not RemoveComm(MExclJars.Lines[i], TmpStr)
-                  then
-                     Continue;
-
-                  if TmpStr[1] = '¤'
-                  then
-                     DeleteFile(LibsDir + '\ExtractedClasses\' + StrAfter('¤',  TmpStr));
-
-               end;
-
-            LStatus.Caption := 'Creating ' + LEJobName.Text + '.jar';
-
-            FileLines.Add(ExtractFileDrive(LibsDir));
-            FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
-            FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
-            FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-            then
-               begin
-                  ShowMessage('There was an error creating' + LEJobName.Text + '.jar. Please check Output');
-                  Exit;
-               end;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add(LEJobName.Text + '.jar Created');
-               MStatus.Lines.Add('');
-               LStatus.Caption := 'Creating unit AndroidApi.JNI.' + LEJobName.Text + '.pas';
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-            end);
-
-            DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
-            MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar'));
-
-            FileLines.DisposeOf;
-            FileLines := TStringList.Create;
-
-            FileLines.Add(ExtractFileDrive(LEJ2OLoc.Text));
-            FileLines.Add('cd "' + LEJ2OLoc.Text + '"');
-            FileLines.Add('Java2OP -jar ' + LEJobName.Text + '.jar -unit AndroidApi.JNI.' + LEJobName.Text);
-            FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-            then
-               begin
-                  ShowMessage('There was an error running Java2OP on ' + LEJobName.Text + '.jar. Please check Output');
-                  Exit;
-               end;
-
-            TThread.Synchronize(TThread.CurrentThread,
-            procedure
-            begin
-               MStatus.Lines.Add('unit AndroidApi.JNI.' + LEJobName.Text + '.pas Created');
-               MStatus.Lines.Add('');
-               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-            end);
-
-            DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
-            DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
-            MoveFile(PChar(LEJ2OLoc.Text + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
-
-            FileLines.DisposeOf;
-            FileLines := TStringList.Create;
-            FileLines.LoadFromFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
-
-            for i := 0 to FileLines.Count - 1 do
-               begin
-
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure implementation(', '//procedure implementation(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function implementation(', '//function implementation(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure initialization(', '//procedure initialization(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function initialization(', '//function initialization(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure finalization(', '//procedure initialization(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function finalization(', '//function initialization(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function SHR(', '//function SHR(', [rfReplaceAll, rfIgnoreCase]);                  FileLines[i] := StringReplace(FileLines[i], 'function SHR(', '//function SHR(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function SHL(', '//function SHL(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure SHR(', '//procedure SHR(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure SHL(', '//procedure SHL(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function INLINE(', '//function INLINE(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure INLINE(', '//procedure INLINE(', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function _Getthis$', '//function _Getthis$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'property this$', '//property this$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function _Get.', '//function _Get.', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure _Set.', '//procedure _Set.', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'property .', '//property .', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function _Getval$', '//function _Getval$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'property val$', '//property val$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'property $', '//property $', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function _Get$', '//function _Get$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function then(', '//function then(', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'property class$', '//property class$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'procedure _Setclass$', '//procedure _Setclass$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'function _Getclass$', '//function _Getclass$', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], 'property library', '//property library', [rfReplaceAll, rfIgnoreCase]);
-                  FileLines[i] := StringReplace(FileLines[i], '//function getResult: J; cdecl; overload;', 'function getResult: JObject; cdecl; overload;', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], '//function getResult: J; cdecl; overload;', 'function getResult: JObject; cdecl; overload;', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], '//function getResult(P1: Jlang_Class): J; cdecl; overload;', 'function getResult(P1: Jlang_Class): JObject; cdecl; overload;', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], '//procedure onSuccess(P1: J); cdecl;', 'procedure onSuccess(P1: JObject); cdecl;', [rfReplaceAll]);
-                  FileLines[i] := StringReplace(FileLines[i], '//Deprecated', '', [rfReplaceAll]);
-
-                  if Pos('(.', FileLines[i]) > 0
-                  then
-                     FileLines[i] := '//' + FileLines[i];
-
-                  if Pos(': JOffsetDateTime', FileLines[i]) > 0
-                  then
-                     FileLines[i] := StringReplace(FileLines[i], '//', '', []);
-
-                  if ((Pos(': J;', FileLines[i]) > 0) or
-                      (Pos(': J)', FileLines[i]) > 0))
-                  then
-                     begin
-                        FileLines[i] := StringReplace(FileLines[i], ': J;', ': JObject;', [rfReplaceAll]);
-                        FileLines[i] := StringReplace(FileLines[i], ': J)', ': JObject)', [rfReplaceAll]);
-                        FileLines[i] := StringReplace(FileLines[i], '//', '', []);
-                     end;
-
-                  if (Pos('(1: J', FileLines[i]) > 0) or
-                     (Pos('(2: J', FileLines[i]) > 0) or
-                     (Pos('(3: J', FileLines[i]) > 0) or
-                     (Pos('(4: J', FileLines[i]) > 0) or
-                     (Pos('(5: J', FileLines[i]) > 0) or
-                     (Pos('(6: J', FileLines[i]) > 0) or
-                     (Pos('(7: J', FileLines[i]) > 0) or
-                     (Pos('(8: J', FileLines[i]) > 0) or
-                     (Pos('(9: J', FileLines[i]) > 0) or
-                     (Pos('(0: J', FileLines[i]) > 0) or
-                     (Pos(' 1: J', FileLines[i]) > 0) or
-                     (Pos(' 2: J', FileLines[i]) > 0) or
-                     (Pos(' 3: J', FileLines[i]) > 0) or
-                     (Pos(' 4: J', FileLines[i]) > 0) or
-                     (Pos(' 5: J', FileLines[i]) > 0) or
-                     (Pos(' 6: J', FileLines[i]) > 0) or
-                     (Pos(' 7: J', FileLines[i]) > 0) or
-                     (Pos(' 8: J', FileLines[i]) > 0) or
-                     (Pos(' 9: J', FileLines[i]) > 0) or
-                     (Pos(' 0: J', FileLines[i]) > 0) or
-                     (Pos(' 0: J', FileLines[i]) > 0) or
-                     (Pos('(init: ', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' inline:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' inline;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos('(inline:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' inline(', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' inherited:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' inherited;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' inherited(', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos('(inherited:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' shr:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' shr;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' shr(', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos('(shr:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' shl:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' shl;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' shl(', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos('(shl:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' implementation:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' implementation;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' initialzation:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' initialzation;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' finalization:', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos(' finalization;', AnsiLowerCase(FileLines[i])) > 0) or
-                     (Pos('procedure -', FileLines[i]) > 0) or
-                     (Pos('function -', FileLines[i]) > 0)
-                  then
-                     FileLines[i] := '//' + FileLines[i];
-
-               end;
-
-            FileLines.SaveToFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
-
-            DeleteDirectory(TmpDir, False);
-
-            if TSKeepLibs.State = tssOff
-            then
-               DeleteDirectory(LibsDir, False);
+            finally
+               FileLines.DisposeOf;
+            end;
 
          finally
-            FileLines.DisposeOf;
+
+            LStatus.Caption := 'Task completed successfully.';
+
+            NoClose := False;
+            BClose.Enabled := True;
+            BGo.Enabled := True;
+            BAddRep.Enabled := True;
+            BNewJob.Enabled := True;
+            BSave.Enabled := True;
+            BDelete.Enabled := True;
+            BCompileAll.Enabled := True;
+            BHistory.Enabled := True;
+
          end;
 
-      finally
-
-         LStatus.Caption := 'Task completed successfully.';
-
-         NoClose := False;
-         BClose.Enabled := True;
-         BGo.Enabled := True;
-         BAddRep.Enabled := True;
-         BNewJob.Enabled := True;
-         BSave.Enabled := True;
-         BDelete.Enabled := True;
-         BCompileAll.Enabled := True;
-         BHistory.Enabled := True;
-
+      except
+         Exit;
       end;
 
    end).Start;
