@@ -243,7 +243,7 @@ object FGetJars: TFGetJars
   object TSKeepLibs: TToggleSwitch
     Left = 20
     Top = 669
-    Width = 157
+    Width = 183
     Height = 20
     Color = 3288877
     Font.Charset = DEFAULT_CHARSET
@@ -253,8 +253,8 @@ object FGetJars: TFGetJars
     Font.Style = []
     FrameColor = clWhite
     ParentFont = False
-    StateCaptions.CaptionOn = 'Keep GradLibs Dir'
-    StateCaptions.CaptionOff = 'Don'#39't keep GradLibs Dir'
+    StateCaptions.CaptionOn = 'Keep temporary directories'
+    StateCaptions.CaptionOff = 'Delete temporary directories'
     SwitchWidth = 40
     TabOrder = 9
     ThumbColor = clGreen
@@ -396,7 +396,7 @@ object FGetJars: TFGetJars
     OnClick = BHistoryClick
   end
   object TSResources: TToggleSwitch
-    Left = 192
+    Left = 214
     Top = 669
     Width = 161
     Height = 20

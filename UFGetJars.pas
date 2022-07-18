@@ -93,7 +93,7 @@ function MemoStrToIniStr(InStr: string): string;
 implementation
 
 uses
-   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory;
+   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs;
 
 {$R *.dfm}
 
@@ -618,6 +618,7 @@ Begin
 
 End;
 
+
 procedure TFGetJars.BCompileAllClick(Sender: TObject);
 begin
 
@@ -709,6 +710,7 @@ begin
               if not DeleteDirectory(LibsDir, False)
               then
                  begin
+                    Errors := True;
                     ShowMessage('There was an error deleting GradLibs Folder');
                     Exit;
                  end;
@@ -718,6 +720,7 @@ begin
               if not DeleteDirectory(ResDir, False)
               then
                  begin
+                    Errors := True;
                     ShowMessage('There was an error deleting GradRes Folder');
                     Exit;
                  end;
@@ -727,6 +730,7 @@ begin
               if not DeleteDirectory(TmpDir, False)
               then
                  begin
+                    Errors := True;
                     ShowMessage('There was an error deleting GradTmp Folder');
                     Exit;
                  end;
@@ -736,6 +740,7 @@ begin
               if not DeleteDirectory(MergResDir, False)
               then
                  begin
+                    Errors := True;
                     ShowMessage('There was an error deleting MergedRes Folder');
                     Exit;
                  end;
@@ -745,13 +750,25 @@ begin
                if not CreateDir(ProjDir + 'Libs')
                then
                   begin
+                     Errors := True;
                      ShowMessage('There was an error creating ' + ProjDir + 'Libs Folder');
                      Exit;
                   end;
 
+//            if not DirectoryExists(ProjDir + 'res')
+//            then
+//               if not CreateDir(ProjDir + 'res')
+//               then
+//                  begin
+//                     Errors := True;
+//                     ShowMessage('There was an error creating ' + ProjDir + 'res Folder');
+//                     Exit;
+//                  end;
+
            if not CreateDir(LibsDir)
            then
               begin
+                 Errors := True;
                  ShowMessage('There was an error creating GradLib Folder');
                  Exit;
               end;
@@ -759,49 +776,62 @@ begin
            if not CreateDir(ResDir)
            then
               begin
+                 Errors := True;
                  ShowMessage('There was an error creating GradRes Folder');
                  Exit;
               end;
 
-           if not CreateDir(MergResDir)
-           then
-              begin
-                 ShowMessage('There was an error creating MergedRes Folder');
-                 Exit;
-              end;
+            if TSResources.State = tssOn
+            then
+               begin
 
-           if not CreateDir(ResDir + '\src')
-           then
-              begin
-                 ShowMessage('There was an error creating GradRes\src Folder');
-                 Exit;
-              end;
+                  if not CreateDir(MergResDir)
+                  then
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating MergedRes Folder');
+                       Exit;
+                    end;
 
-           if not CreateDir(ResDir + '\src\main')
-           then
-              begin
-                 ShowMessage('There was an error creating GradRes\src\main Folder');
-                 Exit;
-              end;
+                  if not CreateDir(ResDir + '\src')
+                  then
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating GradRes\src Folder');
+                       Exit;
+                    end;
 
-           if not CreateDir(ResDir + '\src\main\res')
-           then
-              begin
-                 ShowMessage('There was an error creating GradRes\src\main\res Folder');
-                 Exit;
-              end;
+                  if not CreateDir(ResDir + '\src\main')
+                  then
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating GradRes\src\main Folder');
+                       Exit;
+                    end;
+
+                  if not CreateDir(ResDir + '\src\main\res')
+                  then
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating GradRes\src\main\res Folder');
+                       Exit;
+                    end;
+
+                  if not CreateDir(LibsDir + '\R')
+                  then
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating ' + LibsDir + '\R Folder');
+                       Exit;
+                    end;
+
+               end;
 
            if not CreateDir(TmpDir)
            then
               begin
+                 Errors := True;
                  ShowMessage('There was an error creating GradTmp Folder');
-                 Exit;
-              end;
-
-           if not CreateDir(LibsDir + '\R')
-           then
-              begin
-                 ShowMessage('There was an error creating ' + LibsDir + '\R Folder');
                  Exit;
               end;
 
@@ -926,6 +956,7 @@ begin
               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
               then
                  begin
+                    Errors := True;
                     ShowMessage('There was an error running Gradle on Build.gradle. Please check Output');
                     Exit;
                  end;
@@ -950,6 +981,7 @@ begin
               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
               then
                  begin
+                    Errors := True;
                     ShowMessage('There was an error running download task. Please check Output');
                     Exit;
                  end;
@@ -1053,7 +1085,14 @@ begin
                           zipFile.Open(FileList[x], zmRead);
                           zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
                        except
-                          Exit;
+
+                           on E: Exception do
+                              begin
+                                 Errors := True;
+                                 ShowMessage(E.Message);
+                                 Exit;
+                              end;
+
                        end;
 
                        TThread.Synchronize(TThread.CurrentThread,
@@ -1088,7 +1127,14 @@ begin
                              zipFile.Open(FileList[x], zmRead);
                              zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
                           except
-                             Exit;
+
+                              on E: Exception do
+                                 begin
+                                    Errors := True;
+                                    ShowMessage(E.Message);
+                                    Exit;
+                                 end;
+
                           end;
 
                        end;
@@ -1168,8 +1214,15 @@ begin
               if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
               then
                  begin
-                    ShowMessage('There was an error creating' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar. Please check Output');
-                    Exit;
+
+                    TThread.Synchronize(TThread.CurrentThread,
+                    procedure
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + '.jar. Please check Output');
+                       Exit;
+                    end);
+
                  end;
 
               TThread.Synchronize(TThread.CurrentThread,
@@ -1199,7 +1252,7 @@ begin
                  PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
                  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
                  AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
-                 BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('/', ExtractFileDir(AaptPath)) + 1);
+                 BuildToolsVer := StrBefore('\', StrAfter('build-tools\', AndroidSDK.SDKAaptPath));
                  SDKApiLevelPath := '"' + AndroidSDK.SDKApiLevel + '\Android.jar"';
                  JDKPath := AndroidSDK.JDKPath;
 
@@ -1384,6 +1437,10 @@ begin
 
                              TmpStr := StrBefore(';', StrAfter('package=', BuildConfiguration.GetValue(BuildConfiguration.Properties[x], True)));
 
+                             if Pos('$(MSBuildProjectName)', TmpStr) > 0
+                             then
+                                TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
                              if Pos('$(ModuleName)', TmpStr) > 0
                              then
                                 TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
@@ -1406,13 +1463,22 @@ begin
                  FileLines := TStringList.Create;
                  FileLines.Clear;
 
+                 FileLines.Add('sdk.dir=' + StringReplace(StrBefore('\platforms', AndroidSDK.SDKApiLevel), '\', '\\', [rfReplaceAll]));
+                 FileLines.SaveToFile(ResDir + '\local.properties');
+
+                 FileLines.DisposeOf;
+                 FileLines := TStringList.Create;
+                 FileLines.Clear;
+
                  FileLines.Add('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8');
                  FileLines.Add('android.useAndroidX=true');
                  FileLines.Add('android.enableJetifier=true');
                  FileLines.Add('android.enableResourceOptimizations=false');
                  FileLines.SaveToFile(ResDir + '\gradle.properties');
 
-                 TDirectory.Copy(ProjDir + '\res', ResDir + '\src\main\res');
+                 if DirectoryExists(ProjDir + '\res')
+                 then
+                    TDirectory.Copy(ProjDir + '\res', ResDir + '\src\main\res');
 
                  FileLines.DisposeOf;
                  FileLines := TStringList.Create;
@@ -1426,6 +1492,7 @@ begin
                  if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
                  then
                     begin
+                       Errors := True;
                        ShowMessage('There was an error running resource task. Please check Output');
                        Exit;
                     end;
@@ -1482,6 +1549,7 @@ begin
                  if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
                  then
                     begin
+                       Errors := True;
                        ShowMessage('There was an error running resource task. Please check Output');
                        Exit;
                     end;
@@ -1503,6 +1571,7 @@ begin
                  if not CreateDir(LibsDir + '\R\Obj')
                  then
                     begin
+                       Errors := True;
                        ShowMessage('There was an error creating ' + LibsDir + '\R\Obj Folder');
                        Exit;
                     end;
@@ -1550,6 +1619,7 @@ begin
                                       if not DeleteDirectory(LibsDir + '\R\Src', False)
                                       then
                                          begin
+                                            Errors := True;
                                             ShowMessage('There was an error deleting ' + LibsDir + '\R\Src Folder');
                                             Exit;
                                          end;
@@ -1557,6 +1627,7 @@ begin
                                    if not CreateDir(LibsDir + '\R\Src')
                                    then
                                       begin
+                                         Errors := True;
                                          ShowMessage('There was an error creating ' + LibsDir + '\R\Src Folder');
                                          Exit;
                                       end;
@@ -1657,32 +1728,42 @@ begin
 
                     end;
 
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
-
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-
-                 FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-                 FileLines.Add('cd "' + LibsDir + '\R\Obj"');
-                 FileLines.Add('jar -cf R.jar *');
-                 FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                 if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                 if not TDirectory.IsEmpty(LibsDir + '\R\Obj')
                  then
                     begin
-                       ShowMessage('There was an error creating R.jar. Please check Output');
-                       Exit;
+
+                       FileLines.DisposeOf;
+                       FileLines := TStringList.Create;
+                       FileLines.Clear;
+
+                       FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+                       FileLines.Add('cd "' + LibsDir + '\R\Obj"');
+                       FileLines.Add('jar -cf R.jar *');
+                       FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+                       if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                       then
+                          begin
+                             Errors := True;
+                             ShowMessage('There was an error creating R.jar. Please check Output');
+                             Exit;
+                          end;
+
+                       TThread.Synchronize(TThread.CurrentThread,
+                       procedure
+                       begin
+                          SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                       end);
+
+                       if not MoveFile(PChar(LibsDir + '\R\Obj\R.jar'), PChar(ProjDir + '\Libs\R.jar'))
+                       then
+                          begin
+                             Errors := True;
+                             ShowMessage('Could not move file R.jar to ' + ProjDir + '\Libs');
+                             Exit;
+                          end;
+
                     end;
-
-                 TThread.Synchronize(TThread.CurrentThread,
-                 procedure
-                 begin
-                    SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                 end);
-
-                 MoveFile(PChar(LibsDir + '\R\Obj\R.jar'), PChar(ProjDir + 'Libs\R.jar'));
 
                end;
 
@@ -1760,24 +1841,27 @@ begin
 
                end
             else
-               FileList := TDirectory.GetFiles(ProjDir + 'Res', '*.*', TSearchOption.soAllDirectories);
+               if DirectoryExists(ProjDir + 'Res')
+               then
+                  FileList := TDirectory.GetFiles(ProjDir + 'Res', '*.*', TSearchOption.soAllDirectories);
 
-           if Length(FileList) > 0
-           then
+           ProjFileLinesOut.Add(ProjFileLinesIn[i]);
+           Inc(i);
+
+           while  (i < ProjFileLinesIn.Count) and (Pos('<Deployment Version="', ProjFileLinesIn[i]) = 0) do
               begin
 
                  ProjFileLinesOut.Add(ProjFileLinesIn[i]);
                  Inc(i);
 
-                 while  (i < ProjFileLinesIn.Count) and (Pos('<Deployment Version="', ProjFileLinesIn[i]) = 0) do
-                    begin
+              end;
 
-                       ProjFileLinesOut.Add(ProjFileLinesIn[i]);
-                       Inc(i);
+           ProjFileLinesOut.Add(ProjFileLinesIn[i]);
 
-                    end;
-
-                 ProjFileLinesOut.Add(ProjFileLinesIn[i]);
+           if (FileList <> nil) and
+              (Length(FileList) > 0)
+           then
+              begin
 
                  for x := 0 to High(FileList) do
                     begin
@@ -1934,6 +2018,9 @@ begin
               end;
 
            ProjFileLinesOut.SaveToFile(GetCurrentProjectFileName);
+
+           GetCurrentProject.ProjectOptions.ModifiedState := True;
+
            ProjFileLinesIn.DisposeOf;
            ProjFileLinesOut.DisposeOf;
            FileList := nil;
@@ -2358,15 +2445,14 @@ begin
 
             LStatus.Caption := 'Cleaning...';
 
-            DeleteDirectory(TmpDir, False);
-            DeleteDirectory(ResDir, False);
-
-            if TSKeepLibs.State = tssOff
-            then
-               DeleteDirectory(LibsDir, False);
-
          except
-            Exit;
+
+            on E: Exception do
+               begin
+                  ShowMessage(E.Message);
+                  Exit;
+               end;
+
          end;
 
       finally
@@ -2374,11 +2460,24 @@ begin
          if Errors
          then
             begin
-               LStatus.Caption := 'Task completed. There were errors packaging resources. Please see output. Backup of project file located in ' + SavedFile;
+               LStatus.Caption := 'Task completed. There were errors. Please see output. Backup of project file located in ' + SavedFile;
                LStatus.Font.Color := clRed;
             end
          else
             LStatus.Caption := 'Task completed succesfully. Backup of project file located in ' + SavedFile;
+
+         if TSKeepLibs.State = tssOff
+         then
+            begin
+
+               DeleteDirectory(TmpDir, False);
+               DeleteDirectory(LibsDir, False);
+
+               if DirectoryExists(ResDir)
+               then
+                  DeleteDirectory(ResDir, False);
+
+            end;
 
          NoClose := False;
          BClose.Enabled := True;
@@ -2539,11 +2638,23 @@ begin
                      end;
 
                except
-                  Exit;
+
+                  on E: Exception do
+                     begin
+                        ShowMessage(E.Message);
+                        Exit;
+                     end;
+
                end;
 
             except
-               Exit;
+
+               on E: Exception do
+                  begin
+                     ShowMessage(E.Message);
+                     Exit;
+                  end;
+
             end;
 
             if FileExists(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + 'Full.pas')
@@ -2720,7 +2831,13 @@ begin
                            zipFile.Open(FileList[x], zmRead);
                            zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
                         except
-                           Exit;
+
+                           on E: Exception do
+                              begin
+                                 ShowMessage(E.Message);
+                                 Exit;
+                              end;
+
                         end;
 
                         TThread.Synchronize(TThread.CurrentThread,
@@ -2780,7 +2897,13 @@ begin
                               zipFile.Open(FileList[x], zmRead);
                               zipFile.ExtractAll(LibsDir + '\ExtractedClasses');
                            except
-                              Exit;
+
+                              on E: Exception do
+                                 begin
+                                    ShowMessage(E.Message);
+                                    Exit;
+                                 end;
+
                            end;
 
                         end;
@@ -3035,7 +3158,13 @@ begin
          end;
 
       except
-         Exit;
+
+         on E: Exception do
+            begin
+               ShowMessage(E.Message);
+               Exit;
+            end;
+
       end;
 
    end).Start;
