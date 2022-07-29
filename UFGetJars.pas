@@ -2019,8 +2019,6 @@ begin
 
            ProjFileLinesOut.SaveToFile(GetCurrentProjectFileName);
 
-           GetCurrentProject.ProjectOptions.ModifiedState := True;
-
            ProjFileLinesIn.DisposeOf;
            ProjFileLinesOut.DisposeOf;
            FileList := nil;
