@@ -3,8 +3,8 @@ object FManifest: TFManifest
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'AndroidManifest'
-  ClientHeight = 309
-  ClientWidth = 529
+  ClientHeight = 298
+  ClientWidth = 532
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,9 +12,8 @@ object FManifest: TFManifest
   Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsStayOnTop
-  OldCreateOrder = False
-  Position = poDesktopCenter
-  PixelsPerInch = 96
+  Position = poDesigned
+  OnShow = FormShow
   TextHeight = 13
   object Label3: TLabel
     Left = 15
@@ -42,7 +41,7 @@ object FManifest: TFManifest
     Font.Style = []
     ParentFont = False
     ReadOnly = True
-    TabOrder = 3
+    TabOrder = 0
     WordWrap = False
   end
   object BDissMiss: TButton
@@ -58,7 +57,7 @@ object FManifest: TFManifest
     Font.Style = []
     ModalResult = 2
     ParentFont = False
-    TabOrder = 0
+    TabOrder = 1
     OnClick = BDissMissClick
   end
   object BSaveToClipb: TButton
@@ -74,7 +73,7 @@ object FManifest: TFManifest
     Font.Style = []
     ModalResult = 8
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 2
     OnClick = BSaveToClipbClick
   end
   object BAddManifest: TButton
@@ -90,7 +89,7 @@ object FManifest: TFManifest
     Font.Style = []
     ModalResult = 1
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 3
     WordWrap = True
   end
 end

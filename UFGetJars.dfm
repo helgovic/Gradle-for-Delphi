@@ -3,21 +3,22 @@ object FGetJars: TFGetJars
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Gradle for Delphi'
-  ClientHeight = 791
-  ClientWidth = 1055
+  ClientHeight = 803
+  ClientWidth = 1052
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  Menu = MMFGetJars
   Position = poDesktopCenter
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   TextHeight = 13
   object Label1: TLabel
     Left = 20
-    Top = 2
+    Top = 8
     Width = 67
     Height = 13
     Caption = 'Dependencies'
@@ -30,7 +31,7 @@ object FGetJars: TFGetJars
   end
   object Label2: TLabel
     Left = 535
-    Top = 2
+    Top = 8
     Width = 152
     Height = 13
     Caption = 'Additional (Local) Dependencies'
@@ -68,8 +69,8 @@ object FGetJars: TFGetJars
     ParentFont = False
   end
   object Label5: TLabel
-    Left = 363
-    Top = 622
+    Left = 537
+    Top = 636
     Width = 59
     Height = 13
     Caption = 'Project Jobs'
@@ -82,7 +83,7 @@ object FGetJars: TFGetJars
   end
   object LStatus: TLabel
     Left = 20
-    Top = 382
+    Top = 407
     Width = 1014
     Height = 20
     AutoSize = False
@@ -140,8 +141,8 @@ object FGetJars: TFGetJars
   end
   object LEJobName: TLabeledEdit
     Left = 20
-    Top = 638
-    Width = 328
+    Top = 650
+    Width = 497
     Height = 21
     Color = 3288877
     EditLabel.Width = 47
@@ -161,33 +162,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 6
-    Text = ''
-  end
-  object LEJ2OLoc: TLabeledEdit
-    Left = 706
-    Top = 638
-    Width = 328
-    Height = 21
-    Color = 3288877
-    EditLabel.Width = 86
-    EditLabel.Height = 13
-    EditLabel.Caption = 'Java2OP Location'
-    EditLabel.Color = 10930928
-    EditLabel.Font.Charset = DEFAULT_CHARSET
-    EditLabel.Font.Color = clWhite
-    EditLabel.Font.Height = -11
-    EditLabel.Font.Name = 'Tahoma'
-    EditLabel.Font.Style = []
-    EditLabel.ParentColor = False
-    EditLabel.ParentFont = False
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWhite
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
-    TabOrder = 8
+    TabOrder = 7
     Text = ''
   end
   object MExclJars: TMemo
@@ -206,9 +181,9 @@ object FGetJars: TFGetJars
     WordWrap = False
   end
   object CBProjJobs: TComboBox
-    Left = 363
-    Top = 638
-    Width = 328
+    Left = 537
+    Top = 650
+    Width = 497
     Height = 21
     AutoComplete = False
     BevelEdges = []
@@ -223,12 +198,12 @@ object FGetJars: TFGetJars
     Font.Style = []
     ParentCtl3D = False
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 8
     OnSelect = CBProjJobsSelect
   end
   object ASPB: TProgressBar
     Left = 20
-    Top = 592
+    Top = 604
     Width = 1015
     Height = 19
     BorderWidth = 1
@@ -237,12 +212,12 @@ object FGetJars: TFGetJars
     BarColor = clBlue
     BackgroundColor = clBlack
     ShowHint = False
-    TabOrder = 5
+    TabOrder = 6
     TabStop = True
   end
   object TSKeepLibs: TToggleSwitch
     Left = 20
-    Top = 669
+    Top = 681
     Width = 183
     Height = 20
     Color = 3288877
@@ -260,8 +235,8 @@ object FGetJars: TFGetJars
     ThumbColor = clGreen
   end
   object BGo: TButton
-    Left = 166
-    Top = 714
+    Left = 168
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Create JNI pas file'
@@ -271,12 +246,12 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 13
+    TabOrder = 12
     OnClick = BGoClick
   end
   object BAddRep: TButton
-    Left = 287
-    Top = 714
+    Left = 289
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Repositories'
@@ -286,12 +261,12 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 14
+    TabOrder = 13
     OnClick = BAddRepClick
   end
   object BClose: TButton
-    Left = 45
-    Top = 714
+    Left = 47
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Close'
@@ -302,11 +277,11 @@ object FGetJars: TFGetJars
     Font.Style = []
     ModalResult = 8
     ParentFont = False
-    TabOrder = 12
+    TabOrder = 11
   end
   object BNewJob: TButton
-    Left = 529
-    Top = 714
+    Left = 531
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'New Job'
@@ -316,12 +291,12 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 16
+    TabOrder = 15
     OnClick = BNewJobClick
   end
   object BSave: TButton
-    Left = 408
-    Top = 714
+    Left = 410
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Save Job'
@@ -331,12 +306,12 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 15
+    TabOrder = 14
     OnClick = BSaveClick
   end
   object BDelete: TButton
-    Left = 650
-    Top = 714
+    Left = 652
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Delete Job'
@@ -346,12 +321,12 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 17
+    TabOrder = 16
     OnClick = BDeleteClick
   end
   object MStatus: TMemo
     Left = 20
-    Top = 411
+    Top = 433
     Width = 1014
     Height = 159
     Color = 3288877
@@ -363,11 +338,11 @@ object FGetJars: TFGetJars
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 4
+    TabOrder = 5
   end
   object BCompileAll: TButton
-    Left = 771
-    Top = 714
+    Left = 773
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Compile project jar'
@@ -377,12 +352,12 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 18
+    TabOrder = 17
     OnClick = BCompileAllClick
   end
   object BHistory: TButton
-    Left = 892
-    Top = 714
+    Left = 894
+    Top = 735
     Width = 117
     Height = 49
     Caption = 'Show History'
@@ -392,13 +367,23 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 19
+    TabOrder = 18
     OnClick = BHistoryClick
   end
-  object TSResources: TToggleSwitch
-    Left = 214
-    Top = 669
-    Width = 161
+  object Button1: TButton
+    Left = 702
+    Top = 686
+    Width = 57
+    Height = 29
+    Caption = 'Button1'
+    TabOrder = 10
+    Visible = False
+    OnClick = Button1Click
+  end
+  object TSInclRes: TToggleSwitch
+    Left = 20
+    Top = 377
+    Width = 162
     Height = 20
     Color = 3288877
     Font.Charset = DEFAULT_CHARSET
@@ -408,28 +393,16 @@ object FGetJars: TFGetJars
     Font.Style = []
     FrameColor = clWhite
     ParentFont = False
-    State = tssOn
-    StateCaptions.CaptionOn = 'Process resources'
-    StateCaptions.CaptionOff = 'Don'#39't process resources'
+    StateCaptions.CaptionOn = 'Include Resources'
+    StateCaptions.CaptionOff = 'Don'#39't Include Resources'
     SwitchWidth = 40
-    TabOrder = 10
+    TabOrder = 4
     ThumbColor = clGreen
-    OnClick = TSResourcesClick
-  end
-  object Button1: TButton
-    Left = 702
-    Top = 672
-    Width = 57
-    Height = 29
-    Caption = 'Button1'
-    TabOrder = 11
-    Visible = False
-    OnClick = Button1Click
   end
   object FDCJobs: TFDConnection
     Params.Strings = (
       'DriverID=SQLite'
-      'Database=D:\Deplhi\Explorer\ExplorerGJ.db')
+      'Database=D:\Downloads\XE11\GetJars\Gradle.db')
     LoginPrompt = False
     Left = 75
     Top = 75
@@ -437,16 +410,21 @@ object FGetJars: TFGetJars
   object QGetJobs: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (
-      'Select h.SaveDate,'
-      '       h.Dependencies,'
-      '       h.AddDependencies,'
-      '       h.ExclJNI,'
-      '       h.ExclFinal'
-      '  from History h,'
-      '       Jobs j'
-      '  where h.JobID = j.ID and'
-      '        j.JobName = :JobName'
-      '  order by 1 desc')
+      'Select'
+      '  h.SaveDate,'
+      '  h.Dependencies,'
+      '  h.AddDependencies,'
+      '  h.ExclJNI,'
+      '  h.ExclFinal,'
+      '  h.InclRes'
+      'From'
+      '  History h,'
+      '  Jobs j'
+      'Where'
+      '  h.JobID = j.ID And'
+      '  (j.JobName = :JobName)'
+      'Order By'
+      '  1 Desc')
     Left = 481
     Top = 133
     ParamData = <
@@ -470,24 +448,21 @@ object FGetJars: TFGetJars
   object QDefDB: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (
+      'PRAGMA foreign_keys = off;'
       'BEGIN TRANSACTION;'
       ''
       '-- Table: History'
       
         'CREATE TABLE History (JobID INTEGER NOT NULL REFERENCES Jobs (ID' +
         ') ON DELETE CASCADE, SaveDate DATETIME NOT NULL, Dependencies ST' +
-        'RING NOT NULL, AddDependencies STRING NOT NULL, ExclJNI STRING N' +
-        'OT NULL, ExclFinal STRING NOT NULL);'
+        'RING NOT NULL, AddDependrencies STRING NOT NULL, ExclJNI STRING ' +
+        'NOT NULL, ExclFinal STRING NOT NULL, InclRes BOOLEAN NOT NULL DE' +
+        'FAULT (False));'
       ''
       '-- Table: Jobs'
       
         'CREATE TABLE Jobs (ID INTEGER PRIMARY KEY NOT NULL UNIQUE, JobNa' +
         'me STRING NOT NULL);'
-      ''
-      '-- Table: Parms'
-      
-        'CREATE TABLE Parms (Name STRING PRIMARY KEY NOT NULL, Value STRI' +
-        'NG NOT NULL);'
       ''
       '-- Table: Reposittories'
       
@@ -499,28 +474,33 @@ object FGetJars: TFGetJars
         'CREATE UNIQUE INDEX JobIdx ON History (JobID DESC, SaveDate DESC' +
         ');'
       ''
-      '-- Index: PrimaryIdx'
-      'CREATE UNIQUE INDEX PrimaryIdx ON Parms (Name);'
-      ''
-      'COMMIT TRANSACTION;')
-    Left = 481
-    Top = 73
+      'COMMIT TRANSACTION;'
+      'PRAGMA foreign_keys = on;')
+    Left = 278
+    Top = 75
   end
   object QGetCurrJob: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (
-      'Select h.SaveDate,'
-      '       h.Dependencies,'
-      '       h.AddDependencies,'
-      '       h.ExclJNI,'
-      '       h.ExclFinal'
-      '  from History h,'
-      '       Jobs j'
-      ' where j.JobName = :JobName'
-      '   and h.JobID = j.ID'
-      ' and h.SaveDate = (Select max(SaveDate)'
-      '                   from History'
-      '                  where JobID = j.ID)')
+      'Select'
+      '  h.SaveDate,'
+      '  h.Dependencies,'
+      '  h.AddDependencies,'
+      '  h.ExclJNI,'
+      '  h.ExclFinal,'
+      '  h.InclRes'
+      'From'
+      '  History h,'
+      '  Jobs j'
+      'Where'
+      '  h.JobID = j.ID And'
+      '  (h.SaveDate = (Select'
+      '    Max(History.SaveDate)'
+      '  From'
+      '    History'
+      '  Where'
+      '    History.JobID = j.ID) And'
+      '  j.JobName = :JobName)')
     Left = 684
     Top = 75
     ParamData = <
@@ -544,7 +524,8 @@ object FGetJars: TFGetJars
       '             Dependencies,'
       '             AddDependencies,'
       '             ExclJNI,'
-      '             ExclFinal)'
+      '             ExclFinal,'
+      '             InclRes)'
       '      values((select ID'
       '                from Jobs'
       '               where JobName = :JobName),'
@@ -552,7 +533,8 @@ object FGetJars: TFGetJars
       '               :Dependencies,'
       '               :AddDependencies,'
       '               :ExclJNI,'
-      '               :ExclFinal)')
+      '               :ExclFinal,'
+      '               :InclRes)')
     Left = 684
     Top = 133
     ParamData = <
@@ -579,6 +561,10 @@ object FGetJars: TFGetJars
       item
         Name = 'EXCLFINAL'
         ParamType = ptInput
+      end
+      item
+        Name = 'INCLRES'
+        ParamType = ptInput
       end>
   end
   object QGetID: TFDQuery
@@ -595,7 +581,8 @@ object FGetJars: TFGetJars
       'Select h.Dependencies,'
       '       h.AddDependencies,'
       '       h.ExclJNI,'
-      '       h.ExclFinal'
+      '       h.ExclFinal,'
+      '       h.InclRes'
       '  from History h,'
       '       Jobs j'
       ' where j.JobName = :JobName'
@@ -630,8 +617,8 @@ object FGetJars: TFGetJars
   object TParms: TFDTable
     Connection = FDCJobs
     TableName = 'Parms'
-    Left = 280
-    Top = 193
+    Left = 278
+    Top = 191
   end
   object QDelRepositories: TFDQuery
     Connection = FDCJobs
@@ -639,7 +626,15 @@ object FGetJars: TFGetJars
       'delete'
       'from'
       '  Reposittories')
-    Left = 278
+    Left = 481
     Top = 75
+  end
+  object MMFGetJars: TMainMenu
+    Left = 684
+    Top = 191
+    object MISettings: TMenuItem
+      Caption = 'Settings'
+      OnClick = MISettingsClick
+    end
   end
 end

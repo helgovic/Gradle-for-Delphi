@@ -16,6 +16,7 @@ type
     BAddManifest: TButton;
     procedure BSaveToClipbClick(Sender: TObject);
     procedure BDissMissClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
@@ -28,6 +29,9 @@ var
 
 implementation
 
+uses
+   UFGetJars;
+
 {$R *.dfm}
 
 procedure TFManifest.BDissMissClick(Sender: TObject);
@@ -38,6 +42,12 @@ end;
 procedure TFManifest.BSaveToClipbClick(Sender: TObject);
 begin
    Clipboard.AsText := MAndrMan.Text;
+end;
+
+procedure TFManifest.FormShow(Sender: TObject);
+begin
+   Self.Left := FGetJars.Left + ((FGetJars.Width - Self.Width) div 2);
+   Self.Top := FGetJars.Top + (FGetJars.Height - Self.Height) - 70;
 end;
 
 end.
