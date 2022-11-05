@@ -13,7 +13,7 @@ uses
   FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef, FireDAC.Stan.ExprFuncs,
   FireDAC.Phys.SQLiteWrapper.Stat, FireDAC.VCLUI.Wait, FireDAC.Stan.Param,
   FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.Client, Data.DB,
-  FireDAC.Comp.DataSet;
+  FireDAC.Comp.DataSet, Vcl.Menus;
 
 type
   TFGetJars = class(TForm)
@@ -24,7 +24,6 @@ type
     Label2: TLabel;
     LEJobName: TLabeledEdit;
     Label3: TLabel;
-    LEJ2OLoc: TLabeledEdit;
     Label4: TLabel;
     MExclJars: TMemo;
     CBProjJobs: TComboBox;
@@ -52,10 +51,12 @@ type
     BHistory: TButton;
     QGetJobByDate: TFDQuery;
     QGetJobByName: TFDQuery;
-    TSResources: TToggleSwitch;
     TParms: TFDTable;
     QDelRepositories: TFDQuery;
     Button1: TButton;
+    TSInclRes: TToggleSwitch;
+    MMFGetJars: TMainMenu;
+    MISettings: TMenuItem;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -66,8 +67,8 @@ type
     procedure BCompileAllClick(Sender: TObject);
     procedure BHistoryClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure TSResourcesClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure MISettingsClick(Sender: TObject);
   private
     procedure ExecOut(const Text: string);
     procedure LoadJob(JobNam: String);
@@ -93,13 +94,15 @@ function MemoStrToIniStr(InStr: string): string;
 implementation
 
 uses
-   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs;
+   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs, UFSettings;
 
 {$R *.dfm}
 
 var
    FileLines: TStringList;
    NoClose: Boolean = False;
+   UseJava2OP: Boolean = True;
+   ConverterPath: String;
 
 function RemoveComm(InString: String; var OutString: String): Boolean;
 begin
@@ -275,14 +278,127 @@ var
    AndroidSDK: IOTAPlatformSDKAndroid;
    AaptPath: string;
    BuildToolsVer: string;
+   ProjectOptionsConfigurations: IOTAProjectOptionsConfigurations;
+   x, i, y: integer;
+   TmpStr: String;
+   Found: Boolean;
 
 begin
+
+   If Supports(GetActiveProject.ProjectOptions, IOTAProjectOptionsConfigurations, ProjectOptionsConfigurations)
+   Then
+      begin
+
+         Found := False;
+
+         for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
+            begin
+
+              ShowMessage(ProjectOptionsConfigurations.Configurations[x].Name);
+
+              if ProjectOptionsConfigurations.Configurations[x].Name = GetCurrentProject.CurrentConfiguration
+              then
+                 begin
+
+                    if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
+                    then
+                       begin
+
+                          ShowMessage(GetCurrentProject.CurrentPlatform);
+
+                          for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
+                             begin
+
+                                if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                then
+                                   begin
+
+                                      Found := True;
+
+                                      ShowMessage(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y]);
+                                      TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                      if Pos('$(MSBuildProjectName)', TmpStr) > 0
+                                      then
+                                         TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                      if Pos('$(ModuleName)', TmpStr) > 0
+                                      then
+                                         TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                      ShowMessage(TmpStr);
+            //                                   FileLines.Add('        package="' + TmpStr + '">')
+
+                                      Break;
+
+                                   end;
+
+                             end;
+
+                       end;
+
+                    Break;
+
+                 end;
+            end;
+
+         if not Found
+         then
+            for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
+            begin
+
+              ShowMessage(ProjectOptionsConfigurations.Configurations[x].Name);
+
+              if ProjectOptionsConfigurations.Configurations[x].Name = 'Base'
+              then
+                 begin
+
+                    if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
+                    then
+                       begin
+
+                          ShowMessage(GetCurrentProject.CurrentPlatform);
+
+                          for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
+                             begin
+
+                                if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                then
+                                   begin
+
+                                      ShowMessage(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y]);
+                                      TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                      if Pos('$(MSBuildProjectName)', TmpStr) > 0
+                                      then
+                                         TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                      if Pos('$(ModuleName)', TmpStr) > 0
+                                      then
+                                         TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                      ShowMessage(TmpStr);
+            //                                   FileLines.Add('        package="' + TmpStr + '">')
+
+                                      Break;
+
+                                   end;
+
+                             end;
+
+                       end;
+
+                    Break;
+
+                 end;
+            end;
+
+      end;
 //  PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
 //  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
 //  AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
 //  BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('\', ExtractFileDir(AaptPath)) + 1);
 //  ShowMessage(BuildToolsVer);
-   raise Exception.Create('Test');
 end;
 
 procedure TFGetJars.CBProjJobsSelect(Sender: TObject);
@@ -310,29 +426,6 @@ var
    i: integer;
 
 begin
-
-   if Trim(LEJ2OLoc.Text) = ''
-   then
-      begin
-         ShowMessage('Please enter location of Java2OP.exe');
-         LEJ2OLoc.SetFocus;
-         Exit(False);
-      end;
-
-   if not FileExists(Trim(LEJ2OLoc.Text) + '\Java2Op.exe')
-   then
-      begin
-         ShowMessage('Java2OP.exe not found at ' + Trim(LEJ2OLoc.Text));
-         LEJ2OLoc.SetFocus;
-         Exit(False);
-      end;
-
-   with TRegIniFile.Create(REG_KEY) do
-   try
-      WriteString(REG_BUILD_OPTIONS, 'Java2op Location', LEJ2OLoc.Text);
-   finally
-      Free;
-   end;
 
    if (Trim(MJars.Text) = '') and
       (Trim(MAddJars.Text) = '')
@@ -410,6 +503,13 @@ begin
          QInsHist.ParamByName('AddDependencies').AsString := MAddJars.Lines.Text;
          QInsHist.ParamByName('ExclJNI').AsString := MExclJars.Lines.Text;
          QInsHist.ParamByName('ExclFinal').AsString := MExclFinal.Lines.Text;
+
+         if TSInclRes.State = tssOn
+         then
+            QInsHist.ParamByName('InclRes').AsBoolean := True
+         else
+            QInsHist.ParamByName('InclRes').AsBoolean := False;
+
          QInsHist.ExecSQL;
 
       end;
@@ -438,19 +538,35 @@ begin
 
 end;
 
-procedure TFGetJars.TSResourcesClick(Sender: TObject);
+procedure TFGetJars.MISettingsClick(Sender: TObject);
 begin
 
-   TParms.FindKey(['ProcessRes']);
-   TParms.Edit;
+   with TRegIniFile.Create(REG_KEY) do
+   try
+      FSettings.BEJ2OPath.Text := ReadString(REG_BUILD_OPTIONS, 'Java2op Location', '');
+      FSettings.BEJIPath.Text := ReadString(REG_BUILD_OPTIONS, 'JavaImport Location', '');
+      FSettings.RBJava2OP.Checked := ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
+      FSettings.RbJavaImport.Checked := not ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
+   finally
+      Free;
+   end;
 
-   if TSResources.State = tssOn
+   if FSettings.ShowModal = mrOK
    then
-      TParms.FieldByName('Value').AsString := 'On'
-   else
-      TParms.FieldByName('Value').AsString := 'Off';
+      with TRegIniFile.Create(REG_KEY) do
+      try
 
-   TParms.Post;
+         UseJava2OP := FSettings.RBJava2OP.Checked;
+
+         if UseJava2OP
+         then
+            ConverterPath := FSettings.BEJ2OPath.Text
+         else
+            ConverterPath := FSettings.BEJIPath.Text;
+
+      finally
+         Free;
+      end;
 
 end;
 
@@ -469,6 +585,12 @@ begin
    MExclFinal.Lines.Text := QGetCurrJob.FieldByName('ExclFinal').AsString;
    CBProjJobs.Text := JobNam;
 
+   if QGetCurrJob.FieldByName('InclRes').AsBoolean
+   then
+      TSInclRes.State := tssOn
+   else
+      TSInclRes.State := tssOff;
+
 end;
 
 procedure TFGetJars.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -482,6 +604,21 @@ end;
 
 procedure TFGetJars.FormShow(Sender: TObject);
 begin
+
+   with TRegIniFile.Create(REG_KEY) do
+   try
+
+      UseJava2OP := ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
+
+      if UseJava2OP
+      then
+         ConverterPath := ReadString(REG_BUILD_OPTIONS, 'Java2op Location', '')
+      else
+         ConverterPath := ReadString(REG_BUILD_OPTIONS, 'JavaImport Location', '');
+
+   finally
+      Free;
+   end;
 
    FDCJobs.Connected := False;
 
@@ -524,23 +661,6 @@ begin
    if CBProjJobs.Items.Count > 0
    then
       LoadJob(CBProjJobs.Items[CBProjJobs.Items.Count - 1]);
-
-   if TParms.FindKey(['ProcessRes'])
-   then
-      if TParms.FieldByName('Value').AsString = 'On'
-      then
-         TSResources.State := tssOn
-      else
-         TSResources.State := tssOff
-   else
-      TParms.InsertRecord(['ProcessRes', 'Off']);
-
-   with TRegIniFile.Create(REG_KEY) do
-   try
-      LEJ2OLoc.Text := ReadString(REG_BUILD_OPTIONS, 'Java2op Location', '');
-   finally
-      Free;
-   end;
 
 end;
 
@@ -647,7 +767,6 @@ begin
       Found: Boolean;
       TmpStr, TmpStr2: String;
       SLJobs, SLJars, SLAddJars, SLExclJars, CopyFiles: TStringList;
-      BuildConfiguration: IOTABuildConfiguration;
       ProjectOptionsConfigurations: IOTAProjectOptionsConfigurations;
       ShortName: string;
       PlatformSDKServices: IOTAPlatformSDKServices;
@@ -662,6 +781,11 @@ begin
       SavedFile: String;
       ProjFileLinesIn: TStringList;
       ProjFileLinesOut: TStringList;
+      IDEHandle: HWND;
+      IDEThread: DWORD;
+      OtherHandle: HWND;
+      OtherThread: DWORD;
+      ProjPackage: String;
 
    begin
 
@@ -712,6 +836,16 @@ begin
                  begin
                     Errors := True;
                     ShowMessage('There was an error deleting GradLibs Folder');
+                    Exit;
+                 end;
+
+           if DirectoryExists(LibsDir + '\Resources')
+           then
+              if not DeleteDirectory(LibsDir + '\Resources', False)
+              then
+                 begin
+                    Errors := True;
+                    ShowMessage('There was an error deleting GradLibs\Resources Folder');
                     Exit;
                  end;
 
@@ -773,6 +907,14 @@ begin
                  Exit;
               end;
 
+           if not CreateDir(LibsDir + '\Resources')
+           then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating GradLib\Resources Folder');
+                 Exit;
+              end;
+
            if not CreateDir(ResDir)
            then
               begin
@@ -781,51 +923,45 @@ begin
                  Exit;
               end;
 
-            if TSResources.State = tssOn
+            if not CreateDir(MergResDir)
             then
-               begin
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating MergedRes Folder');
+                 Exit;
+              end;
 
-                  if not CreateDir(MergResDir)
-                  then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error creating MergedRes Folder');
-                       Exit;
-                    end;
+            if not CreateDir(ResDir + '\src')
+            then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating GradRes\src Folder');
+                 Exit;
+              end;
 
-                  if not CreateDir(ResDir + '\src')
-                  then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error creating GradRes\src Folder');
-                       Exit;
-                    end;
+            if not CreateDir(ResDir + '\src\main')
+            then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating GradRes\src\main Folder');
+                 Exit;
+              end;
 
-                  if not CreateDir(ResDir + '\src\main')
-                  then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error creating GradRes\src\main Folder');
-                       Exit;
-                    end;
+            if not CreateDir(ResDir + '\src\main\res')
+            then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating GradRes\src\main\res Folder');
+                 Exit;
+              end;
 
-                  if not CreateDir(ResDir + '\src\main\res')
-                  then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error creating GradRes\src\main\res Folder');
-                       Exit;
-                    end;
-
-                  if not CreateDir(LibsDir + '\R')
-                  then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error creating ' + LibsDir + '\R Folder');
-                       Exit;
-                    end;
-
-               end;
+            if not CreateDir(LibsDir + '\R')
+            then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating ' + LibsDir + '\R Folder');
+                 Exit;
+              end;
 
            if not CreateDir(TmpDir)
            then
@@ -940,6 +1076,7 @@ begin
               FileLines.Add('}');
               FileLines.Add('');
               FileLines.Add('task getDeps(type: Copy) {');
+              FileLines.Add('    duplicatesStrategy = ''include''');
               FileLines.Add('    from configurations.myConfig');
               FileLines.Add('    into ''' + StringReplace(LibsDir, '\', '/', [rfReplaceAll]) + '''');
               FileLines.Add('}');
@@ -1233,125 +1370,363 @@ begin
                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
               end);
 
+            LStatus.Caption := 'Processing Resources.';
+
+           for i := 0 to SLJobs.Count - 1 do
+              begin
+
+                 QGetCurrJob.Close;
+                 QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
+                 QGetCurrJob.Open;
+
+                 if QGetCurrJob.FieldByName('InclRes').AsBoolean
+                 then
+                    begin
+
+                       SLAddJars.Text := QGetCurrJob.FieldByName('AddDependencies').AsString;
+
+                       for x := 0 to SLAddJars.count - 1 do
+                          begin
+
+                             if not RemoveComm(SLAddJars[x], TmpStr)
+                             then
+                                Continue;
+
+                             if not FileExists(TmpStr)
+                             then
+                                begin
+                                   ShowMessage('File ' + TmpStr + ' not found');
+                                   Exit;
+                                end;
+
+                             if ExtractFileExt(AnsiLowerCase(TmpStr)) = '.aar'
+                             then
+                                if not CopyFile(PChar(TmpStr), PChar(LibsDir + '\Resources\' + EXtractFileName(TmpStr)), False)
+                                then
+                                   TThread.Synchronize(TThread.CurrentThread,
+                                   procedure
+                                   begin
+                                      MStatus.Lines.Add('Error copying: ' + TmpStr);
+                                      SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                                      Exit;
+                                   end);
+
+                          end;
+
+                       FileLines.DisposeOf;
+                       FileLines := TStringList.Create;
+
+                       FileLines.Add('repositories {');
+
+                       TRepositories.First;
+
+                       while not TRepositories.Eof do
+                          begin
+                             FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
+                             TRepositories.Next;
+                          end;
+
+                       FileLines.Add('}');
+                       FileLines.Add('configurations {');
+                       FileLines.Add('');
+                       FileLines.Add('    myConfig');
+                       FileLines.Add('}');
+                       FileLines.Add('');
+                       FileLines.Add('dependencies {');
+
+                       SLJars.Text := QGetCurrJob.FieldByName('Dependencies').AsString;
+
+                       for x := 0 to SLJars.count - 1 do
+                          begin
+
+                             if not RemoveComm(SLJars[x], TmpStr)
+                             then
+                                Continue;
+
+                             Found := False;
+
+                             for y := 0 to FileLines.count - 1 do
+                                if Pos(TmpStr, FileLines[y]) > 0
+                                then
+                                   Found := True;
+
+                             if Found
+                             then
+                                Continue;
+
+                             ExcludeFile := False;
+
+                             for z := 0 to SLJobs.Count - 1 do
+                                begin
+
+                                   QGetCurrJob.Close;
+                                   QGetCurrJob.ParamByName('JobName').AsString := SLJobs[z];
+                                   QGetCurrJob.Open;
+
+                                   SLExclJars.Text := QGetCurrJob.FieldByName('ExclFinal').AsString;
+
+                                   for y := 0 to SLExclJars.count - 1 do
+                                      begin
+
+                                         if not RemoveComm(SLExclJars[y], TmpStr2)
+                                         then
+                                            Continue;
+
+                                         if (TmpStr2[1] <> '/') and
+                                            (TmpStr2[1] <> '¤')
+                                         then
+                                            if Pos(AnsiLowerCase(TmpStr2), AnsiLowerCase(FileList[x])) > 0
+                                            then
+                                               begin
+                                                  ExcludeFile := True;
+                                                  Break;
+                                               end;
+
+                                      end;
+
+                                end;
+
+                             if ExcludeFile
+                             then
+                                Continue;
+
+                             FileLines.Add('    myConfig ' + TmpStr);
+
+                          end;
+
+                       FileLines.Add('');
+                       FileLines.Add('}');
+                       FileLines.Add('');
+                       FileLines.Add('task getDeps(type: Copy) {');
+                       FileLines.Add('    duplicatesStrategy = ''include''');
+                       FileLines.Add('    from configurations.myConfig');
+                       FileLines.Add('    into ''' + StringReplace(LibsDir + '\Resources', '\', '/', [rfReplaceAll]) + '''');
+                       FileLines.Add('}');
+
+                       FileLines.SaveToFile(TmpDir + '\Build.gradle');
+
+                       FileLines.DisposeOf;
+                       FileLines := TStringList.Create;
+
+                       FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+                       FileLines.Add('cd "' + TmpDir + '"');
+                       FileLines.Add('Gradle');
+                       FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+                       if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                       then
+                          begin
+                             Errors := True;
+                             ShowMessage('There was an error running Gradle on Build.gradle. Please check Output');
+                             Exit;
+                          end;
+
+                       FileLines.DisposeOf;
+                       FileLines := TStringList.Create;
+                       FileLines.Clear;
+
+                       FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+                       FileLines.Add('cd "' + TmpDir + '"');
+                       FileLines.Add('Gradle -q getDeps');
+                       FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+                       if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                       then
+                          begin
+                             Errors := True;
+                             ShowMessage('There was an error running download task. Please check Output');
+                             Exit;
+                          end;
+
+                    end;
+
+              end;
+
+           FileList := nil;
+           FileList := TDirectory.GetFiles(LibsDir + '\Resources', '*.aar', TSearchOption.soTopDirectoryOnly);
+
+           ASPB.Max := Length(FileList);
+
+           zipFile := TZipFile.Create;
+
+           for y := 0 to High(FileList) do
+              if zipFile.IsValid(FileList[y])
+              then
+                 begin
+
+                    TThread.Synchronize(TThread.CurrentThread,
+                    procedure
+                    begin
+                       MStatus.Lines.Add('Extracting: ' + FileList[y]);
+                       MStatus.Lines.Add('');
+                       SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                    end);
+
+                    try
+                       zipFile.Open(FileList[y], zmRead);
+                       zipFile.ExtractAll(LibsDir + '\Resources\' + StrBefore(ExtractFileExt(FileList[y]), ExtractFileName(FileList[y])));
+                    except
+
+                        on E: Exception do
+                           begin
+                              Errors := True;
+                              ShowMessage(E.Message);
+                              Exit;
+                           end;
+
+                    end;
+
+                    TThread.Synchronize(TThread.CurrentThread,
+                    procedure
+                    begin
+                       ASPB.Position := y + 1;
+                    end);
+
+                 end;
+
+            zipFile.Close;
+
             ProjFileLinesIn := TStringList.Create;
             ProjFileLinesOut := TStringList.Create;
+
+            FileLines.DisposeOf;
+            FileLines := TStringList.Create;
+            FileLines.LoadFromFile(ExtractFilePath(GetCurrentProjectFileName) + 'AndroidManifest.template.xml');
+
+            if FileExists(ProjDir + 'Libs\R.jar')
+            then
+               DeleteFile(ProjDir + 'Libs\R.jar');
+
+
+           PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
+           AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
+           AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
+           BuildToolsVer := StrBefore('\', StrAfter('build-tools\', AndroidSDK.SDKAaptPath));
+           SDKApiLevelPath := '"' + AndroidSDK.SDKApiLevel + '\Android.jar"';
+           JDKPath := AndroidSDK.JDKPath;
+
+           i := 0;
+           while Pos('<uses-sdk android:minSdkVersion=', FileLines[i]) = 0 do
+              Inc(i);
+
+            if StrBefore('" android:targetSdkVersion=', StrAfter('<uses-sdk android:minSdkVersion="', FileLines[i])) = '%minSdkVersion%'
+            then
+               MinSDK := '23'
+            else
+               MinSDK := StrBefore('" android:targetSdkVersion=', StrAfter('<uses-sdk android:minSdkVersion="', FileLines[i]));
+
+            if StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i])) = '%targetSdkVersion%'
+            then
+               TargetSDK := '32'
+            else
+               TargetSDK := StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i]));
+
            FileLines.DisposeOf;
            FileLines := TStringList.Create;
-           FileLines.LoadFromFile(ExtractFilePath(GetCurrentProjectFileName) + 'AndroidManifest.template.xml');
+           FileLines.Clear;
 
-           if FileExists(ProjDir + 'Libs\R.jar')
-           then
-              DeleteFile(ProjDir + 'Libs\R.jar');
+           FileLines.Add('buildscript {');
+           FileLines.Add('    repositories {');
 
-            if TSResources.State = tssOn
-            then
-               begin
+           TRepositories.First;
 
-                 LStatus.Caption := 'Processing Resources.';
+           while not TRepositories.Eof do
+              begin
+                 FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
+                 TRepositories.Next;
+              end;
 
-                 PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
-                 AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
-                 AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
-                 BuildToolsVer := StrBefore('\', StrAfter('build-tools\', AndroidSDK.SDKAaptPath));
-                 SDKApiLevelPath := '"' + AndroidSDK.SDKApiLevel + '\Android.jar"';
-                 JDKPath := AndroidSDK.JDKPath;
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('    dependencies {');
+           FileLines.Add('        classpath "com.android.tools.build:gradle:4.1.3"');
+           FileLines.Add('    }');
+           FileLines.Add('}');
+           FileLines.Add('');
+           FileLines.Add('apply plugin: ''com.android.application'';');
+           FileLines.Add('');
+           FileLines.Add('android {');
+           FileLines.Add('    compileSdkVersion ' + TargetSDK);
+           FileLines.Add('    buildToolsVersion "' + BuildToolsVer + '"');
+           FileLines.Add('');
+           FileLines.Add('    defaultConfig {');
+           FileLines.Add('        minSdkVersion ' + MinSDK);
+           FileLines.Add('        targetSdkVersion ' + TargetSDK);
+           FileLines.Add('        versionCode 1');
+           FileLines.Add('        versionName "1.0"');
+           FileLines.Add('        multiDexEnabled true');
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('    buildTypes {');
+           FileLines.Add('        release {');
+           FileLines.Add('            minifyEnabled false');
+           FileLines.Add('        }');
+           FileLines.Add('        debug {');
+           FileLines.Add('            minifyEnabled false');
+           FileLines.Add('        }');
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('    packagingOptions {');
+           FileLines.Add('        exclude ''META-INF/DEPENDENCIES''');
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('    compileOptions {');
+           FileLines.Add('        sourceCompatibility JavaVersion.VERSION_1_8');
+           FileLines.Add('        targetCompatibility JavaVersion.VERSION_1_8');
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('    buildFeatures {');
+           FileLines.Add('        viewBinding = true');
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('    repositories {');
 
-                 i := 0;
-                 while Pos('<uses-sdk android:minSdkVersion=', FileLines[i]) = 0 do
-                    Inc(i);
+           TRepositories.First;
 
-                  if StrBefore('" android:targetSdkVersion=', StrAfter('<uses-sdk android:minSdkVersion="', FileLines[i])) = '%minSdkVersion%'
-                  then
-                     MinSDK := '23'
-                  else
-                     MinSDK := StrBefore('" android:targetSdkVersion=', StrAfter('<uses-sdk android:minSdkVersion="', FileLines[i]));
+           while not TRepositories.Eof do
+              begin
+                 FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
+                 TRepositories.Next;
+              end;
 
-                  if StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i])) = '%targetSdkVersion%'
-                  then
-                     TargetSDK := '31'
-                  else
-                     TargetSDK := StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i]));
+           FileLines.Add('    }');
+           FileLines.Add('');
+           FileLines.Add('}');
+           FileLines.Add('');
+           FileLines.Add('dependencies {');
 
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
+           for i := 0 to SLJobs.Count - 1 do
+              begin
 
-                 FileLines.Add('buildscript {');
-                 FileLines.Add('    repositories {');
+                 QGetCurrJob.Close;
+                 QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
+                 QGetCurrJob.Open;
 
-                 TRepositories.First;
-
-                 while not TRepositories.Eof do
-                    begin
-                       FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                       TRepositories.Next;
-                    end;
-
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('    dependencies {');
-                 FileLines.Add('        classpath "com.android.tools.build:gradle:4.1.3"');
-                 FileLines.Add('    }');
-                 FileLines.Add('}');
-                 FileLines.Add('');
-                 FileLines.Add('apply plugin: ''com.android.application'';');
-                 FileLines.Add('');
-                 FileLines.Add('android {');
-                 FileLines.Add('    compileSdkVersion ' + TargetSDK);
-                 FileLines.Add('    buildToolsVersion "' + BuildToolsVer + '"');
-                 FileLines.Add('');
-                 FileLines.Add('    defaultConfig {');
-                 FileLines.Add('        minSdkVersion ' + MinSDK);
-                 FileLines.Add('        targetSdkVersion ' + TargetSDK);
-                 FileLines.Add('        versionCode 1');
-                 FileLines.Add('        versionName "1.0"');
-                 FileLines.Add('        multiDexEnabled true');
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('    buildTypes {');
-                 FileLines.Add('        release {');
-                 FileLines.Add('            minifyEnabled false');
-                 FileLines.Add('        }');
-                 FileLines.Add('        debug {');
-                 FileLines.Add('            minifyEnabled false');
-                 FileLines.Add('        }');
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('    packagingOptions {');
-                 FileLines.Add('        exclude ''META-INF/DEPENDENCIES''');
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('    compileOptions {');
-                 FileLines.Add('        sourceCompatibility JavaVersion.VERSION_1_8');
-                 FileLines.Add('        targetCompatibility JavaVersion.VERSION_1_8');
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('    buildFeatures {');
-                 FileLines.Add('        viewBinding true');
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('    repositories {');
-
-                 TRepositories.First;
-
-                 while not TRepositories.Eof do
-                    begin
-                       FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                       TRepositories.Next;
-                    end;
-
-                 FileLines.Add('    }');
-                 FileLines.Add('');
-                 FileLines.Add('}');
-                 FileLines.Add('');
-                 FileLines.Add('dependencies {');
-
-                 for i := 0 to SLJobs.Count - 1 do
+                 if QGetCurrJob.FieldByName('InclRes').AsBoolean
+                 then
                     begin
 
-                       QGetCurrJob.Close;
-                       QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
-                       QGetCurrJob.Open;
+                       SLAddJars.Text := QGetCurrJob.FieldByName('AddDependencies').AsString;
+
+                       for x := 0 to SLAddJars.count - 1 do
+                          begin
+
+                             if not RemoveComm(SLAddJars[x], TmpStr)
+                             then
+                                Continue;
+
+                             if not FileExists(TmpStr)
+                             then
+                                begin
+                                   ShowMessage('File ' + TmpStr + ' not found');
+                                   Exit;
+                                end;
+
+                             if ExtractFileExt(AnsiLowerCase(TmpStr)) = '.aar'
+                             then
+                                FileLines.Add('    implementation files(''' + StringReplace(TmpStr, '\', '/', [rfReplaceAll]) + ''')');
+
+                          end;
 
                        SLJars.Text := QGetCurrJob.FieldByName('Dependencies').AsString;
 
@@ -1412,360 +1787,441 @@ begin
                           end;
 
                     end;
+              end;
 
-                 FileLines.Add('}');
+           FileLines.Add('}');
 
-                 FileLines.SaveToFile(ResDir + '\Build.Gradle');
+           FileLines.SaveToFile(ResDir + '\Build.Gradle');
 
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
 
-                 FileLines.Add('<?xml version="1.0" encoding="utf-8"?>');
-                 FileLines.Add('<manifest xmlns:android="http://schemas.android.com/apk/res/android"');
+           FileLines.Add('<?xml version="1.0" encoding="utf-8"?>');
+           FileLines.Add('<manifest xmlns:android="http://schemas.android.com/apk/res/android"');
 
-                 If Supports(GetActiveProject.ProjectOptions, IOTAProjectOptionsConfigurations, ProjectOptionsConfigurations)
-                 Then
-                    BuildConfiguration := ProjectOptionsConfigurations.ActiveConfiguration;
+            If Supports(GetActiveProject.ProjectOptions, IOTAProjectOptionsConfigurations, ProjectOptionsConfigurations)
+            Then
+               begin
 
-                 for x := 0 to BuildConfiguration.PropertyCount - 1 do
-                    begin
+                  Found := False;
 
-                       if BuildConfiguration.Properties[x] = 'VerInfo_Keys'
+                  for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
+                     begin
+
+                       if ProjectOptionsConfigurations.Configurations[x].Name = GetCurrentProject.CurrentConfiguration
                        then
                           begin
 
-                             TmpStr := StrBefore(';', StrAfter('package=', BuildConfiguration.GetValue(BuildConfiguration.Properties[x], True)));
-
-                             if Pos('$(MSBuildProjectName)', TmpStr) > 0
-                             then
-                                TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                             if Pos('$(ModuleName)', TmpStr) > 0
-                             then
-                                TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                             FileLines.Add('        package="' + TmpStr + '">')
-
-                          end;
-
-                    end;
-
-                 FileLines.Add('  <application');
-                 FileLines.Add('      android:allowBackup="true"');
-                 FileLines.Add('      android:supportsRtl="true"/>');
-
-                 FileLines.Add('</manifest>');
-
-                 FileLines.SaveToFile(ResDir + '\src\main\AndroidManifest.xml');
-
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
-
-                 FileLines.Add('sdk.dir=' + StringReplace(StrBefore('\platforms', AndroidSDK.SDKApiLevel), '\', '\\', [rfReplaceAll]));
-                 FileLines.SaveToFile(ResDir + '\local.properties');
-
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
-
-                 FileLines.Add('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8');
-                 FileLines.Add('android.useAndroidX=true');
-                 FileLines.Add('android.enableJetifier=true');
-                 FileLines.Add('android.enableResourceOptimizations=false');
-                 FileLines.SaveToFile(ResDir + '\gradle.properties');
-
-                 if DirectoryExists(ProjDir + '\res')
-                 then
-                    TDirectory.Copy(ProjDir + '\res', ResDir + '\src\main\res');
-
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
-
-                 FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-                 FileLines.Add('cd "' + ResDir + '"');
-                 FileLines.Add('Gradle wrapper');
-                 FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                 if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-                 then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error running resource task. Please check Output');
-                       Exit;
-                    end;
-
-                 TThread.Synchronize(TThread.CurrentThread,
-                 procedure
-                 begin
-                    SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                 end);
-
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
-
-                 FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-                 FileLines.Add('cd "' + ResDir + '"');
-
-                 if GetCurrentProject.CurrentConfiguration = 'Debug'
-                 then
-                    FileLines.Add('Gradlew mergeDebugResources')
-                 else
-                    FileLines.Add('Gradlew mergeReleaseResources');
-
-                 FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                 if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-                 then
-                    begin
-                       ShowMessage('There was an error running resource task. Please check Output');
-                       Exit;
-                    end;
-
-                 TThread.Synchronize(TThread.CurrentThread,
-                 procedure
-                 begin
-                    SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                 end);
-
-                 FileLines.DisposeOf;
-                 FileLines := TStringList.Create;
-                 FileLines.Clear;
-
-                 FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-                 FileLines.Add('cd "' + ResDir + '"');
-
-                 if GetCurrentProject.CurrentConfiguration = 'Debug'
-                 then
-                    FileLines.Add('Gradlew processDebugResources')
-                 else
-                    FileLines.Add('Gradlew processReleaseResources');
-
-                 FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                 if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-                 then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error running resource task. Please check Output');
-                       Exit;
-                    end;
-
-                 TThread.Synchronize(TThread.CurrentThread,
-                 procedure
-                 begin
-                    SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                 end);
-
-                 if GetCurrentProject.CurrentConfiguration = 'Debug'
-                 then
-                    TDirectory.Copy(ResDir + '\build\intermediates\incremental\mergeDebugResources\merged.dir', MergResDir)
-                 else
-                    TDirectory.Copy(ResDir + '\build\intermediates\incremental\mergeReleaseResources\merged.dir', MergResDir);
-
-                 DirList := TDirectory.GetDirectories(LibsDir, 'res', TSearchOption.soAllDirectories);
-
-                 if not CreateDir(LibsDir + '\R\Obj')
-                 then
-                    begin
-                       Errors := True;
-                       ShowMessage('There was an error creating ' + LibsDir + '\R\Obj Folder');
-                       Exit;
-                    end;
-
-                 for x := 0 to High(DirList) do
-                    begin
-
-                       if Pos('ExtractedClasses', DirList[x]) = 0
-                       then
-                          begin
-
-                             DirList2 := TDirectory.GetDirectories(DirList[x], '*', TSearchOption.soAllDirectories);
-
-                             for y := 0 to High(DirList2) do
-                                begin
-
-                                   if Pos('values', DirList2[y]) = 0
-                                   then
-                                      begin
-
-                                         TmpStr := StrRestOf(DirList2[y], StrLastPos('\', DirList2[y]) + 1);
-
-                                         TDirectory.Copy(DirList2[y], MergResDir + '\' + TmpStr);
-
-                                      end;
-
-                                end;
-
-                             if not TDirectory.IsEmpty(DirList[x])
+                             if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
                              then
                                 begin
 
-                                   FileList := nil;
-                                   FileList := TDirectory.GetFiles(DirList[x], '*.xml', TSearchOption.soAllDirectories);
-
-                                   for y := 0 to High(FileList) do
-                                      begin
-                                         FileLines.LoadFromFile(FileList[y]);
-                                         FileLines.Text := StringReplace(FileLines.Text, 'xmlns:app="http://schemas.android.com/apk/res-auto"', 'xmlns:app="http://schemas.android.com/apk/lib-auto"', []);
-                                         FileLines.SaveToFile(FileList[y]);
-                                      end;
-
-                                   if DirectoryExists(LibsDir + '\R\Src')
-                                   then
-                                      if not DeleteDirectory(LibsDir + '\R\Src', False)
-                                      then
-                                         begin
-                                            Errors := True;
-                                            ShowMessage('There was an error deleting ' + LibsDir + '\R\Src Folder');
-                                            Exit;
-                                         end;
-
-                                   if not CreateDir(LibsDir + '\R\Src')
-                                   then
-                                      begin
-                                         Errors := True;
-                                         ShowMessage('There was an error creating ' + LibsDir + '\R\Src Folder');
-                                         Exit;
-                                      end;
-
-                                   FileLines.DisposeOf;
-                                   FileLines := TStringList.Create;
-                                   FileLines.Clear;
-
-                                   FileLines.LoadFromFile(StrLeft(DirList[x], StrILastPos('\', DirList[x])) + 'AndroidManifest.xml');
-
-                                   y := 0;
-
-                                   while Pos('package="', FileLines[y]) = 0 do
-                                      Inc(y);
-
-                                   PackName := Trim(StrBefore('"', StrAfter('package="', FileLines[y])));
-                                   PackName := StringReplace(PackName, '.', '\', [rfReplaceAll]);
-
-                                   FileLines.DisposeOf;
-                                   FileLines := TStringList.Create;
-                                   FileLines.Clear;
-
-                                   TmpStr := AaptPath +
-                                            ' package -f -m -M ' +
-                                            '"' + StrLeft(DirList[x], StrILastPos('\', DirList[x])) + 'AndroidManifest.xml"' +
-                                            ' -I ' +
-                                            SDKApiLevelPath +
-                                            ' -S ' +
-                                            '"' + DirList[x] + '"' +
-                                            ' -J ' +
-                                            '"' + LibsDir + '\R\Src"';
-
-                                   FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-                                   FileLines.Add('cd "' + ResDir + '"');
-                                   FileLines.Add(TmpStr);
-
-                                   FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                                   TThread.Synchronize(TThread.CurrentThread,
-                                   procedure
-                                   begin
-                                      MStatus.Lines.Add('');
-                                      SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                                   end);
-
-                                   if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-                                   then
+                                   for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
                                       begin
 
-                                         Errors := True;
-
-                                         TThread.Synchronize(TThread.CurrentThread,
-                                         procedure
-                                         begin
-                                            MStatus.Lines.Add('');
-                                            MStatus.Lines.Add('Step failed');
-                                            SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                                         end);
-
-                                      end;
-
-                                   if FileExists(LibsDir + '\R\Src\' + StringReplace(PackName, '.', '\', [rfReplaceAll]) + '\R.java')
-                                   then
-                                      begin
-
-                                         FileLines.DisposeOf;
-                                         FileLines := TStringList.Create;
-                                         FileLines.Clear;
-
-                                         TmpStr := '"' + JDKPath + '\bin\javac"' +
-                                                   ' -verbose -d ' +
-                                                   '"' + LibsDir + '\R\Obj"' +
-                                                   ' -classpath ' +
-                                                   SDKApiLevelPath +
-                                                   ';"' + LibsDir + '\R\Obj"' +
-                                                   ' -sourcepath "' + LibsDir + '\R\Src" "' + LibsDir + '\R\Src\' + StringReplace(PackName, '.', '\', [rfReplaceAll]) + '\R.java"';
-
-                                         FileLines.Add(TmpStr);
-
-                                         FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-                                         if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                                         if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
                                          then
                                             begin
-                                               Errors := True;
+
+                                               Found := True;
+
+                                               ProjPackage := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                               if Pos('$(MSBuildProjectName)', ProjPackage) > 0
+                                               then
+                                                  ProjPackage := StringReplace(ProjPackage, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                               if Pos('$(ModuleName)', ProjPackage) > 0
+                                               then
+                                                  ProjPackage := StringReplace(ProjPackage, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);;
+
+                                               FileLines.Add('        package="' + ProjPackage + '">');
+
+                                               Break;
+
                                             end;
 
-                                         TThread.Synchronize(TThread.CurrentThread,
-                                         procedure
-                                         begin
-                                            SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                                         end);
+                                      end;
+
+                                end;
+
+                             Break;
+
+                          end;
+                     end;
+
+                  if not Found
+                  then
+                     for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
+                     begin
+
+                       if ProjectOptionsConfigurations.Configurations[x].Name = 'Base'
+                       then
+                          begin
+
+                             if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
+                             then
+                                begin
+
+                                   for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
+                                      begin
+
+                                         if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                         then
+                                            begin
+
+                                               TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                               if Pos('$(MSBuildProjectName)', TmpStr) > 0
+                                               then
+                                                  TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                               if Pos('$(ModuleName)', TmpStr) > 0
+                                               then
+                                                  TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                               FileLines.Add('        package="' + TmpStr + '">');
+
+                                               Break;
+
+                                            end;
 
                                       end;
+
                                 end;
+
+                             Break;
+
+                          end;
+                     end;
+
+               end;
+
+           FileLines.Add('  <application');
+           FileLines.Add('      android:allowBackup="true"');
+           FileLines.Add('      android:supportsRtl="true"/>');
+
+           FileLines.Add('</manifest>');
+
+           FileLines.SaveToFile(ResDir + '\src\main\AndroidManifest.xml');
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add('sdk.dir=' + StringReplace(StrBefore('\platforms', AndroidSDK.SDKApiLevel), '\', '\\', [rfReplaceAll]));
+           FileLines.SaveToFile(ResDir + '\local.properties');
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8');
+           FileLines.Add('android.useAndroidX=true');
+           FileLines.Add('android.enableJetifier=true');
+           FileLines.Add('android.enableResourceOptimizations=false');
+           FileLines.SaveToFile(ResDir + '\gradle.properties');
+
+           if DirectoryExists(ProjDir + '\res')
+           then
+              TDirectory.Copy(ProjDir + '\res', ResDir + '\src\main\res');
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+           FileLines.Add('cd "' + ResDir + '"');
+           FileLines.Add('Gradle wrapper');
+           FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+           if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+           then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error running resource task. Please check Output');
+                 Exit;
+              end;
+
+           TThread.Synchronize(TThread.CurrentThread,
+           procedure
+           begin
+              SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+           end);
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+           FileLines.Add('cd "' + ResDir + '"');
+
+           if GetCurrentProject.CurrentConfiguration = 'Debug'
+           then
+              FileLines.Add('Gradlew mergeDebugResources')
+           else
+              FileLines.Add('Gradlew mergeReleaseResources');
+
+           FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+           if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+           then
+              begin
+                 ShowMessage('There was an error running resource task. Please check Output');
+                 Exit;
+              end;
+
+           TThread.Synchronize(TThread.CurrentThread,
+           procedure
+           begin
+              SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+           end);
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+           FileLines.Add('cd "' + ResDir + '"');
+
+           if GetCurrentProject.CurrentConfiguration = 'Debug'
+           then
+              FileLines.Add('Gradlew processDebugResources')
+           else
+              FileLines.Add('Gradlew processReleaseResources');
+
+           FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+           if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+           then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error running resource task. Please check Output');
+                 Exit;
+              end;
+
+           TThread.Synchronize(TThread.CurrentThread,
+           procedure
+           begin
+              SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+           end);
+
+           if GetCurrentProject.CurrentConfiguration = 'Debug'
+           then
+              TDirectory.Copy(ResDir + '\build\intermediates\incremental\mergeDebugResources\merged.dir', MergResDir)
+           else
+              TDirectory.Copy(ResDir + '\build\intermediates\incremental\mergeReleaseResources\merged.dir', MergResDir);
+
+           DirList := TDirectory.GetDirectories(LibsDir + '\Resources', 'res', TSearchOption.soAllDirectories);
+
+           if not CreateDir(LibsDir + '\R\Obj')
+           then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating ' + LibsDir + '\R\Obj Folder');
+                 Exit;
+              end;
+
+           for x := 0 to High(DirList) do
+              begin
+
+                 DirList2 := TDirectory.GetDirectories(DirList[x], '*', TSearchOption.soAllDirectories);
+
+                 for y := 0 to High(DirList2) do
+                    begin
+
+                       if Pos('values', DirList2[y]) = 0
+                       then
+                          begin
+
+                             TmpStr := StrRestOf(DirList2[y], StrLastPos('\', DirList2[y]) + 1);
+
+                             TDirectory.Copy(DirList2[y], MergResDir + '\' + TmpStr);
 
                           end;
 
                     end;
 
-                 if not TDirectory.IsEmpty(LibsDir + '\R\Obj')
+                 if not TDirectory.IsEmpty(DirList[x])
                  then
                     begin
+
+                       FileList := nil;
+                       FileList := TDirectory.GetFiles(DirList[x], '*.xml', TSearchOption.soAllDirectories);
+
+                       for y := 0 to High(FileList) do
+                          begin
+                             FileLines.LoadFromFile(FileList[y]);
+                             FileLines.Text := StringReplace(FileLines.Text, 'xmlns:app="http://schemas.android.com/apk/res-auto"', 'xmlns:app="http://schemas.android.com/apk/lib-auto"', []);
+                             FileLines.SaveToFile(FileList[y]);
+                          end;
+
+                       if DirectoryExists(LibsDir + '\R\Src')
+                       then
+                          if not DeleteDirectory(LibsDir + '\R\Src', False)
+                          then
+                             begin
+                                Errors := True;
+                                ShowMessage('There was an error deleting ' + LibsDir + '\R\Src Folder');
+                                Exit;
+                             end;
+
+                       if not CreateDir(LibsDir + '\R\Src')
+                       then
+                          begin
+                             Errors := True;
+                             ShowMessage('There was an error creating ' + LibsDir + '\R\Src Folder');
+                             Exit;
+                          end;
 
                        FileLines.DisposeOf;
                        FileLines := TStringList.Create;
                        FileLines.Clear;
 
-                       FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-                       FileLines.Add('cd "' + LibsDir + '\R\Obj"');
-                       FileLines.Add('jar -cf R.jar *');
-                       FileLines.SaveToFile(TmpDir + '\Commands.bat');
+                       FileLines.LoadFromFile(StrLeft(DirList[x], StrILastPos('\', DirList[x])) + 'AndroidManifest.xml');
 
-                       if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                       y := 0;
+
+                       while Pos('package="', FileLines[y]) = 0 do
+                          Inc(y);
+
+                       PackName := Trim(StrBefore('"', StrAfter('package="', FileLines[y])));
+                       PackName := StringReplace(PackName, '.', '\', [rfReplaceAll]);
+
+                       y := 0;
+
+                       while (y < FileLines.Count) and (Pos('android:targetSdkVersion="', FileLines[y]) = 0) do
+                          Inc(y);
+
+                       if y = FileLines.Count
                        then
+                          TmpStr2 := SDKApiLevelPath
+                       else
                           begin
-                             Errors := True;
-                             ShowMessage('There was an error creating R.jar. Please check Output');
-                             Exit;
+                             TargetSDK := Trim(StrBefore('"', StrAfter('android:targetSdkVersion="', FileLines[y])));
+                             TmpStr2 := StrBefore('platforms\', SDKApiLevelPath) + 'platforms\android-' + TargetSDK + '\Android.jar"';
                           end;
+
+                       FileLines.Text := StringReplace(FileLines.Text, '${applicationId}', ProjPackage, [rfReplaceAll]);
+                       FileLines.SaveToFile(StrLeft(DirList[x], StrILastPos('\', DirList[x])) + 'AndroidManifest.xml');
+
+                       FileLines.DisposeOf;
+                       FileLines := TStringList.Create;
+                       FileLines.Clear;
+
+                       TmpStr := AaptPath +
+                                ' package -f -m -M ' +
+                                '"' + StrLeft(DirList[x], StrILastPos('\', DirList[x])) + 'AndroidManifest.xml"' +
+                                ' -I ' +
+                                TmpStr2 +
+                                ' -S ' +
+                                '"' + DirList[x] + '"' +
+                                ' -J ' +
+                                '"' + LibsDir + '\R\Src"';
+
+                       FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+                       FileLines.Add('cd "' + ResDir + '"');
+                       FileLines.Add(TmpStr);
+
+                       FileLines.SaveToFile(TmpDir + '\Commands.bat');
 
                        TThread.Synchronize(TThread.CurrentThread,
                        procedure
                        begin
+                          MStatus.Lines.Add('');
                           SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                        end);
 
-                       if not MoveFile(PChar(LibsDir + '\R\Obj\R.jar'), PChar(ProjDir + '\Libs\R.jar'))
+                       if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
                        then
                           begin
+
                              Errors := True;
-                             ShowMessage('Could not move file R.jar to ' + ProjDir + '\Libs');
-                             Exit;
+
+                             TThread.Synchronize(TThread.CurrentThread,
+                             procedure
+                             begin
+                                MStatus.Lines.Add('');
+                                MStatus.Lines.Add('Step failed');
+                                SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                             end);
+
                           end;
 
+                       if FileExists(LibsDir + '\R\Src\' + StringReplace(PackName, '.', '\', [rfReplaceAll]) + '\R.java')
+                       then
+                          begin
+
+                             FileLines.DisposeOf;
+                             FileLines := TStringList.Create;
+                             FileLines.Clear;
+
+                             TmpStr := '"' + JDKPath + '\bin\javac"' +
+                                       ' -verbose -d ' +
+                                       '"' + LibsDir + '\R\Obj"' +
+                                       ' -classpath ' +
+                                       TmpStr2 +
+                                       ';"' + LibsDir + '\R\Obj"' +
+                                       ' -sourcepath "' + LibsDir + '\R\Src" "' + LibsDir + '\R\Src\' + StringReplace(PackName, '.', '\', [rfReplaceAll]) + '\R.java"';
+
+                             FileLines.Add(TmpStr);
+
+                             FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+                             if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                             then
+                                begin
+                                   Errors := True;
+                                end;
+
+                             TThread.Synchronize(TThread.CurrentThread,
+                             procedure
+                             begin
+                                SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                             end);
+
+                          end;
                     end;
 
-               end;
+              end;
+
+           if not TDirectory.IsEmpty(LibsDir + '\R\Obj')
+           then
+              begin
+
+                 FileLines.DisposeOf;
+                 FileLines := TStringList.Create;
+                 FileLines.Clear;
+
+                 FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+                 FileLines.Add('cd "' + LibsDir + '\R\Obj"');
+                 FileLines.Add('jar -cf R.jar *');
+                 FileLines.SaveToFile(TmpDir + '\Commands.bat');
+
+                 if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
+                 then
+                    begin
+                       Errors := True;
+                       ShowMessage('There was an error creating R.jar. Please check Output');
+                       Exit;
+                    end;
+
+                 TThread.Synchronize(TThread.CurrentThread,
+                 procedure
+                 begin
+                    SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                 end);
+
+                 if not MoveFile(PChar(LibsDir + '\R\Obj\R.jar'), PChar(ProjDir + '\Libs\R.jar'))
+                 then
+                    begin
+                       Errors := True;
+                       ShowMessage('Could not move file R.jar to ' + ProjDir + '\Libs');
+                       Exit;
+                    end;
+
+              end;
 
             ProjFileLinesIn.LoadFromFile(GetCurrentProjectFileName);
 
@@ -1822,28 +2278,18 @@ begin
 
             FileList := nil;
 
-            if TSResources.State = tssOn
-            then
-               begin
+           if FileExists(ProjDir + 'Libs\R.jar')
+           then
+              begin
 
-                 if FileExists(ProjDir + 'Libs\R.jar')
-                 then
-                    begin
+                 ProjFileLinesOut.Add('                <JavaReference Include="Libs\R.jar">');
+                 ProjFileLinesOut.Add('                    <ContainerId>ClassesdexFile64</ContainerId>');
+                 ProjFileLinesOut.Add('                    <Disabled/>');
+                 ProjFileLinesOut.Add('                </JavaReference>');
 
-                       ProjFileLinesOut.Add('                <JavaReference Include="Libs\R.jar">');
-                       ProjFileLinesOut.Add('                    <ContainerId>ClassesdexFile64</ContainerId>');
-                       ProjFileLinesOut.Add('                    <Disabled/>');
-                       ProjFileLinesOut.Add('                </JavaReference>');
+              end;
 
-                    end;
-
-                  FileList := TDirectory.GetFiles(MergResDir, '*.*', TSearchOption.soAllDirectories);
-
-               end
-            else
-               if DirectoryExists(ProjDir + 'Res')
-               then
-                  FileList := TDirectory.GetFiles(ProjDir + 'Res', '*.*', TSearchOption.soAllDirectories);
+            FileList := TDirectory.GetFiles(MergResDir, '*.*', TSearchOption.soAllDirectories);
 
            ProjFileLinesOut.Add(ProjFileLinesIn[i]);
            Inc(i);
@@ -2019,24 +2465,30 @@ begin
 
            ProjFileLinesOut.SaveToFile(GetCurrentProjectFileName);
 
+           TThread.Synchronize(TThread.CurrentThread,
+           procedure
+           begin
+
+              OtherHandle := FindWindow('Shell_TrayWnd', nil);
+              SetForegroundWindow(OtherHandle);
+              IDEHandle := FindWindow('TAppBuilder', nil);
+              SetForegroundWindow(IDEHandle);
+
+           end);
+
            ProjFileLinesIn.DisposeOf;
            ProjFileLinesOut.DisposeOf;
+
            FileList := nil;
            FileList := TDirectory.GetFiles(LibsDir, '*.xml', TSearchOption.soAllDirectories);
 
-           if TSResources.State = tssOn
+           SetLength(FileList, Length(FileList) + 1);
+
+           if GetCurrentProject.CurrentConfiguration = 'Debug'
            then
-              begin
-
-                 SetLength(FileList, Length(FileList) + 1);
-
-                 if GetCurrentProject.CurrentConfiguration = 'Debug'
-                 then
-                    FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\debug\out\AndroidManifest.xml'
-                 else
-                    FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\release\out\AndroidManifest.xml';
-
-              end;
+              FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\debug\out\AndroidManifest.xml'
+           else
+              FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\release\out\AndroidManifest.xml';
 
            ManifestLines := TStringList.Create;
 
@@ -2455,15 +2907,6 @@ begin
 
       finally
 
-         if Errors
-         then
-            begin
-               LStatus.Caption := 'Task completed. There were errors. Please see output. Backup of project file located in ' + SavedFile;
-               LStatus.Font.Color := clRed;
-            end
-         else
-            LStatus.Caption := 'Task completed succesfully. Backup of project file located in ' + SavedFile;
-
          if TSKeepLibs.State = tssOff
          then
             begin
@@ -2476,6 +2919,15 @@ begin
                   DeleteDirectory(ResDir, False);
 
             end;
+
+         if Errors
+         then
+            begin
+               LStatus.Caption := 'Task completed. There were errors. Please see output. Backup of project file located in ' + SavedFile;
+               LStatus.Font.Color := clRed;
+            end
+         else
+            LStatus.Caption := 'Task completed succesfully. Backup of project file located in ' + SavedFile;
 
          NoClose := False;
          BClose.Enabled := True;
@@ -2707,6 +3159,7 @@ begin
                FileLines.Add('}');
                FileLines.Add('');
                FileLines.Add('task getDeps(type: Copy) {');
+               FileLines.Add('    duplicatesStrategy = ''include''');
                FileLines.Add('    from configurations.myConfig');
                FileLines.Add('    into ''' + StringReplace(LibsDir, '\', '/', [rfReplaceAll]) + '''');
                FileLines.Add('}');
@@ -2971,7 +3424,7 @@ begin
 
                FileLines.Add(ExtractFileDrive(LibsDir));
                FileLines.Add('cd "' + LibsDir + '\ExtractedClasses"');
-               FileLines.Add('jar -cf ' + LEJobName.Text + '.jar *');
+               FileLines.Add('jar -cf ' + 'AndroidApi.JNI.' + LEJobName.Text + '.jar *');
                FileLines.SaveToFile(TmpDir + '\Commands.bat');
 
                if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
@@ -2984,27 +3437,33 @@ begin
                TThread.Synchronize(TThread.CurrentThread,
                procedure
                begin
-                  MStatus.Lines.Add(LEJobName.Text + '.jar Created');
+                  MStatus.Lines.Add(LEJobName.Text + 'AndroidApi.JNI.' +  LEJobName.Text + '.jar Created');
                   MStatus.Lines.Add('');
                   LStatus.Caption := 'Creating unit AndroidApi.JNI.' + LEJobName.Text + '.pas';
                   SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                end);
 
-               DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
-               MoveFile(PChar(LibsDir + '\ExtractedClasses\' + LEJobName.Text + '.jar'), PChar(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar'));
+               DeleteFile(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar');
+               MoveFile(PChar(LibsDir + '\ExtractedClasses\AndroidApi.JNI.' + LEJobName.Text + '.jar'), PChar(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar'));
 
                FileLines.DisposeOf;
                FileLines := TStringList.Create;
 
-               FileLines.Add(ExtractFileDrive(LEJ2OLoc.Text));
-               FileLines.Add('cd "' + LEJ2OLoc.Text + '"');
-               FileLines.Add('Java2OP -jar ' + LEJobName.Text + '.jar -unit AndroidApi.JNI.' + LEJobName.Text);
+               FileLines.Add(ExtractFileDrive(ConverterPath));
+               FileLines.Add('cd "' + ConverterPath + '"');
+
+               if UseJava2OP
+               then
+                  FileLines.Add('Java2OP -jar AndroidApi.JNI.' + LEJobName.Text + '.jar -unit AndroidApi.JNI.' + LEJobName.Text)
+               else
+                  FileLines.Add('JavaImport AndroidApi.JNI.' + LEJobName.Text + '.jar');
+
                FileLines.SaveToFile(TmpDir + '\Commands.bat');
 
                if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
                then
                   begin
-                     ShowMessage('There was an error running Java2OP on ' + LEJobName.Text + '.jar. Please check Output');
+                     ShowMessage('There was an error creating JNI file. Please check output');
                      Exit;
                   end;
 
@@ -3016,9 +3475,9 @@ begin
                   SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                end);
 
-               DeleteFile(LEJ2OLoc.Text + '\' + LEJobName.Text + '.jar');
+               DeleteFile(ConverterPath + '\\AndroidApi.JNI.' + LEJobName.Text + '.jar');
                DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
-               MoveFile(PChar(LEJ2OLoc.Text + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
+               MoveFile(PChar(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
 
                FileLines.DisposeOf;
                FileLines := TStringList.Create;
