@@ -3016,6 +3016,13 @@ begin
       try
          try
 
+            if ConverterPath = ''
+            then
+               begin
+                  ShowMessage('You need to set path to converter (Java2OP/JavaImport) in Settings menu');
+                  Exit;
+               end;
+
             MStatus.Lines.Text := '';
             LStatus.Font.Color := clGreen;
 
