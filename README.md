@@ -14,9 +14,11 @@ Copy your java2op directory (e.g. C:\Program Files (x86)\Embarcadero\Studio\21.0
 
 HOW TO USE:
 
-Enter the path of your Java2OP directory in the "Java2OP location" box.
-You have to edit the cache.txt in the Java2OP directory. if eks. you are downloading google play services, you have to remove those entries. 
+Enter the path of your Java2OP/JavaImport directory in the Settings.
+You have to edit the cache.txt in the Java2OP/JavaImport directory. if eks. you are downloading google play services, you have to remove those entries. 
 You also have to disable the build in jars in your projects libs entries. You should avoid using buildin libs, except for FMX.jar.
+
+Add jobs that contain logical units of work. 
 
 In the "Job name" box enter a jobname. This will name the JNI file.
 
@@ -30,15 +32,15 @@ In the "Exclude when building JNI pas file" enter libs/directories/class's that 
 
 In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be test or compile time dependensies.
 
-Create JNI file.
+Create JNI file by clicking "Create JNI pas file".
 
 When you have finished coding against the JNI file, shrink it with "Shrink JNI Files" addon, which can be downloaded from here https://github.com/helgovic/Delphi-shrink-JNI-files.
 
-When you are ready to compile your app, compile project jar.
+When you are ready to compile your app, compile project jar by clicking "Compile Project Jar".
 
 RESOURCES
 
-Processing of resouces from libraries will merge resources from your project (Place your resources in YOURPROJECT\Res), with resouces from dependencies, and place these in folder YOURPROJECT\MergedRes. Resouces from YOURPROJECT\MergedRes will be added to your Deployment files. A R.jar containing R.class'es for the libraries will be generated and added to project. Try if your app runs without using this feature, becourse mostly it is not necessary. 
+Processing of resouces from libraries will merge resources from your project (Place your resources in YOURPROJECT\Res directory), with resouces from dependencies, and place these in folder YOURPROJECT\MergedRes. Resouces from YOURPROJECT\MergedRes will be added to your Deployment files. A R.jar containing R.class'es for the libraries will be generated and added to project. Remember, if you make updates to your apps resources, you need to run "Compile Project Jar". 
 
 EXCLUSION PARAMETERS
 
