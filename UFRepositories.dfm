@@ -3,8 +3,8 @@ object FRepositories: TFRepositories
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Repositories'
-  ClientHeight = 303
-  ClientWidth = 645
+  ClientHeight = 293
+  ClientWidth = 642
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -45,8 +45,8 @@ object FRepositories: TFRepositories
     TabOrder = 0
   end
   object BCancel: TButton
-    Left = 143
-    Top = 232
+    Left = 141
+    Top = 227
     Width = 117
     Height = 49
     Caption = 'Cancel'
@@ -62,7 +62,7 @@ object FRepositories: TFRepositories
   end
   object BOK: TButton
     Left = 387
-    Top = 232
+    Top = 227
     Width = 117
     Height = 49
     Caption = 'OK'
@@ -78,7 +78,7 @@ object FRepositories: TFRepositories
   end
   object BAddRepos: TButton
     Left = 264
-    Top = 232
+    Top = 227
     Width = 117
     Height = 49
     Caption = 'Add Repository'
