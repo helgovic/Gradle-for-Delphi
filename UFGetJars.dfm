@@ -614,12 +614,6 @@ object FGetJars: TFGetJars
         ParamType = ptInput
       end>
   end
-  object TParms: TFDTable
-    Connection = FDCJobs
-    TableName = 'Parms'
-    Left = 278
-    Top = 191
-  end
   object QDelRepositories: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (

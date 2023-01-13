@@ -51,7 +51,6 @@ type
     BHistory: TButton;
     QGetJobByDate: TFDQuery;
     QGetJobByName: TFDQuery;
-    TParms: TFDTable;
     QDelRepositories: TFDQuery;
     Button1: TButton;
     TSInclRes: TToggleSwitch;
@@ -638,7 +637,6 @@ begin
    TJobs.Active := True;
    THistory.Active := True;
    TRepositories.Active := True;
-   TParms.Active := True;
 
    MStatus.Text := '';
    MJars.Text := '';
