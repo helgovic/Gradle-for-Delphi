@@ -4,10 +4,8 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls,
-  MyZip, System.IOUtils, JclFileUtils,
-  Vcl.ComCtrls, Vcl.WinXCtrls, PlatformAPI, Vcl.Mask, FireDAC.Stan.Intf,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls,
+  MyZip, System.IOUtils, JclFileUtils, Vcl.ComCtrls, Vcl.WinXCtrls, PlatformAPI, Vcl.Mask, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef, FireDAC.Stan.ExprFuncs,
@@ -1637,7 +1635,7 @@ begin
            FileLines.Add('    }');
            FileLines.Add('');
            FileLines.Add('    dependencies {');
-           FileLines.Add('        classpath "com.android.tools.build:gradle:4.1.3"');
+           FileLines.Add('        classpath "com.android.tools.build:gradle:4.2.2"');
            FileLines.Add('    }');
            FileLines.Add('}');
            FileLines.Add('');
@@ -2225,7 +2223,15 @@ begin
 
               i := 0;
 
-              while  (i < ProjFileLinesIn.Count) and (Pos('<BuildConfiguration', ProjFileLinesIn[i]) = 0) do
+              while  (i < ProjFileLinesIn.Count) and (Pos('<DelphiCompile Include="$(MainSource)">', ProjFileLinesIn[i]) = 0) do
+              begin
+
+                 ProjFileLinesOut.Add(ProjFileLinesIn[i]);
+                 Inc(i);
+
+              end;
+
+              while (i < ProjFileLinesIn.Count) and (Pos('<BuildConfiguration', ProjFileLinesIn[i]) = 0) do
               begin
 
                  if Pos('<JavaReference Include="Libs\R.jar">' , ProjFileLinesIn[i]) > 0
@@ -2235,11 +2241,10 @@ begin
                        while Pos('</JavaReference>', ProjFileLinesIn[i]) = 0 do
                           Inc(i);
 
-                       Inc(i);
+                    end
+                 else
+                    ProjFileLinesOut.Add(ProjFileLinesIn[i]);
 
-                    end;
-
-                 ProjFileLinesOut.Add(ProjFileLinesIn[i]);
                  Inc(i);
 
               end;
@@ -2484,9 +2489,22 @@ begin
 
            if GetCurrentProject.CurrentConfiguration = 'Debug'
            then
-              FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\debug\out\AndroidManifest.xml'
+              if FileExists(ResDir + '\build\intermediates\merged_manifest\debug\out\AndroidManifest.xml')
+              then
+                 FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\debug\out\AndroidManifest.xml'
+              else
+                 if FileExists(ResDir + '\build\intermediates\merged_manifest\debug\AndroidManifest.xml')
+                 then
+                    FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\debug\AndroidManifest.xml'
+                 else
            else
-              FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\release\out\AndroidManifest.xml';
+              if FileExists(ResDir + '\build\intermediates\merged_manifest\release\out\AndroidManifest.xml')
+              then
+                 FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\release\out\AndroidManifest.xml'
+              else
+                 if FileExists(ResDir + '\build\intermediates\merged_manifest\release\AndroidManifest.xml')
+                 then
+                    FileList[High(FileList)] := ResDir + '\build\intermediates\merged_manifest\release\AndroidManifest.xml';
 
            ManifestLines := TStringList.Create;
 
@@ -3448,11 +3466,15 @@ begin
                   SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                end);
 
-               DeleteFile(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar');
+               if FileExists(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar')
+               then
+                  DeleteFile(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar');
+
                MoveFile(PChar(LibsDir + '\ExtractedClasses\AndroidApi.JNI.' + LEJobName.Text + '.jar'), PChar(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar'));
 
                FileLines.DisposeOf;
                FileLines := TStringList.Create;
+               FileLines.Clear;
 
                FileLines.Add(ExtractFileDrive(ConverterPath));
                FileLines.Add('cd "' + ConverterPath + '"');
@@ -3480,7 +3502,7 @@ begin
                   SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                end);
 
-               DeleteFile(ConverterPath + '\\AndroidApi.JNI.' + LEJobName.Text + '.jar');
+               DeleteFile(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar');
                DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
                MoveFile(PChar(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
 
@@ -3531,14 +3553,14 @@ begin
                      then
                         FileLines[i] := StringReplace(FileLines[i], '//', '', []);
 
-                     if ((Pos(': J;', FileLines[i]) > 0) or
-                         (Pos(': J)', FileLines[i]) > 0))
-                     then
-                        begin
-                           FileLines[i] := StringReplace(FileLines[i], ': J;', ': JObject;', [rfReplaceAll]);
-                           FileLines[i] := StringReplace(FileLines[i], ': J)', ': JObject)', [rfReplaceAll]);
-                           FileLines[i] := StringReplace(FileLines[i], '//', '', []);
-                        end;
+//                     if ((Pos(': J;', FileLines[i]) > 0) or
+//                         (Pos(': J)', FileLines[i]) > 0))
+//                     then
+//                        begin
+//                           FileLines[i] := StringReplace(FileLines[i], ': J;', ': JObject;', [rfReplaceAll]);
+//                           FileLines[i] := StringReplace(FileLines[i], ': J)', ': JObject)', [rfReplaceAll]);
+//                           FileLines[i] := StringReplace(FileLines[i], '//', '', []);
+//                        end;
 
                      if (Pos('(1: J', FileLines[i]) > 0) or
                         (Pos('(2: J', FileLines[i]) > 0) or
