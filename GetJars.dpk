@@ -38,15 +38,18 @@ requires
   FireDACCommonDriver,
   FireDACCommon,
   vclFireDAC,
-  FireDACSqliteDriver;
+  FireDACSqliteDriver,
+  inet,
+  AlcinoeAlexandria;
 
 contains
   UGetJars in 'UGetJars.pas',
   UFGetJars in 'UFGetJars.pas' {FGetJars},
   UFAndroidManifest in 'UFAndroidManifest.pas' {FManifest},
-  UFRepositories in 'UFRepositories.pas' {FRepositories},
-  UAddRep in 'UAddRep.pas' {FAddRep},
   MyZip in 'MyZip.pas',
-  UFHistory in 'UFHistory.pas' {FHistory};
+  UFHistory in 'UFHistory.pas' {FHistory},
+  UFSettings in 'UFSettings.pas' {FSettings},
+  UFRepositories in 'UFRepositories.pas' {FRepositories};
 
 end.
+
