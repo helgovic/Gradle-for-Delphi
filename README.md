@@ -32,7 +32,7 @@ In the "Exclude when building JNI pas file" enter libs/directories/class's that 
 
 In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be test or compile time dependensies.
 
-Add repositories needed for your project in "Repositories". Repository difinitions are global, but needs to be assigned to the project.
+Add repositories needed for your project in "Repositories".
 
 Create JNI file by clicking "Create JNI pas file".
 
