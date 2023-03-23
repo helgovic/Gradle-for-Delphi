@@ -66,13 +66,13 @@
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
         <EnabledSysJars>android-support-v4.dex.jar;cloud-messaging.dex.jar;com-google-android-gms.play-services-ads-base.17.2.0.dex.jar;com-google-android-gms.play-services-ads-identifier.16.0.0.dex.jar;com-google-android-gms.play-services-ads-lite.17.2.0.dex.jar;com-google-android-gms.play-services-ads.17.2.0.dex.jar;com-google-android-gms.play-services-analytics-impl.16.0.8.dex.jar;com-google-android-gms.play-services-analytics.16.0.8.dex.jar;com-google-android-gms.play-services-base.16.0.1.dex.jar;com-google-android-gms.play-services-basement.16.2.0.dex.jar;com-google-android-gms.play-services-gass.17.2.0.dex.jar;com-google-android-gms.play-services-identity.16.0.0.dex.jar;com-google-android-gms.play-services-maps.16.1.0.dex.jar;com-google-android-gms.play-services-measurement-base.16.4.0.dex.jar;com-google-android-gms.play-services-measurement-sdk-api.16.4.0.dex.jar;com-google-android-gms.play-services-stats.16.0.1.dex.jar;com-google-android-gms.play-services-tagmanager-v4-impl.16.0.8.dex.jar;com-google-android-gms.play-services-tasks.16.0.1.dex.jar;com-google-android-gms.play-services-wallet.16.0.1.dex.jar;com-google-firebase.firebase-analytics.16.4.0.dex.jar;com-google-firebase.firebase-common.16.1.0.dex.jar;com-google-firebase.firebase-iid-interop.16.0.1.dex.jar;com-google-firebase.firebase-iid.17.1.1.dex.jar;com-google-firebase.firebase-measurement-connector.17.0.1.dex.jar;com-google-firebase.firebase-messaging.17.5.0.dex.jar;fmx.dex.jar;google-play-billing.dex.jar;google-play-licensing.dex.jar</EnabledSysJars>
-        <DCC_UsePackage>rtl;xmlrtl;dbrtl;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACSqliteDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;xmlrtl;dbrtl;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACSqliteDriver;inet;$(DCC_UsePackage)</DCC_UsePackage>
         <Android_LauncherIcon192>$(BDS)\bin\Artwork\Android\FM_LauncherIcon_192x192.png</Android_LauncherIcon192>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android64)'!=''">
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
         <EnabledSysJars>android-support-v4.dex.jar;cloud-messaging.dex.jar;com-google-android-gms.play-services-ads-base.17.2.0.dex.jar;com-google-android-gms.play-services-ads-identifier.16.0.0.dex.jar;com-google-android-gms.play-services-ads-lite.17.2.0.dex.jar;com-google-android-gms.play-services-ads.17.2.0.dex.jar;com-google-android-gms.play-services-analytics-impl.16.0.8.dex.jar;com-google-android-gms.play-services-analytics.16.0.8.dex.jar;com-google-android-gms.play-services-base.16.0.1.dex.jar;com-google-android-gms.play-services-basement.16.2.0.dex.jar;com-google-android-gms.play-services-gass.17.2.0.dex.jar;com-google-android-gms.play-services-identity.16.0.0.dex.jar;com-google-android-gms.play-services-maps.16.1.0.dex.jar;com-google-android-gms.play-services-measurement-base.16.4.0.dex.jar;com-google-android-gms.play-services-measurement-sdk-api.16.4.0.dex.jar;com-google-android-gms.play-services-stats.16.0.1.dex.jar;com-google-android-gms.play-services-tagmanager-v4-impl.16.0.8.dex.jar;com-google-android-gms.play-services-tasks.16.0.1.dex.jar;com-google-android-gms.play-services-wallet.16.0.1.dex.jar;com-google-firebase.firebase-analytics.16.4.0.dex.jar;com-google-firebase.firebase-common.16.1.0.dex.jar;com-google-firebase.firebase-iid-interop.16.0.1.dex.jar;com-google-firebase.firebase-iid.17.1.1.dex.jar;com-google-firebase.firebase-measurement-connector.17.0.1.dex.jar;com-google-firebase.firebase-messaging.17.5.0.dex.jar;fmx.dex.jar;google-play-billing.dex.jar;google-play-licensing.dex.jar</EnabledSysJars>
-        <DCC_UsePackage>rtl;xmlrtl;dbrtl;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACSqliteDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;xmlrtl;dbrtl;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACSqliteDriver;inet;$(DCC_UsePackage)</DCC_UsePackage>
         <Android_LauncherIcon192>$(BDS)\bin\Artwork\Android\FM_LauncherIcon_192x192.png</Android_LauncherIcon192>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
@@ -81,10 +81,10 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_UsePackage>rtl;tmsdXE7;tmsexdXE7;Jcl;vclwinx;JvCore;JvCmp;JvMM;ShrinkJNI;vclimg;vcl;xmlrtl;vclactnband;vclx;dbrtl;vcldb;VclSmp;adortl;TMSVCLUIPackPkgDXE14;TMSVCLUIPackPkgExDXE14;FireDAC;FireDACCommonDriver;FireDACCommon;vclFireDAC;FireDACSqliteDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;tmsdXE7;tmsexdXE7;Jcl;vclwinx;JvCore;JvCmp;JvMM;ShrinkJNI;vclimg;vcl;xmlrtl;vclactnband;vclx;dbrtl;vcldb;VclSmp;adortl;TMSVCLUIPackPkgDXE14;TMSVCLUIPackPkgExDXE14;FireDAC;FireDACCommonDriver;FireDACCommon;vclFireDAC;FireDACSqliteDriver;inet;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>rtl;vclwinx;vclimg;vcl;xmlrtl;vclactnband;vclx;dbrtl;vcldb;VclSmp;adortl;TMSVCLUIPackPkgDXE14;TMSVCLUIPackPkgExDXE14;FireDAC;FireDACCommonDriver;FireDACCommon;vclFireDAC;FireDACSqliteDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;vclwinx;vclimg;vcl;xmlrtl;vclactnband;vclx;dbrtl;vcldb;VclSmp;adortl;TMSVCLUIPackPkgDXE14;TMSVCLUIPackPkgExDXE14;FireDAC;FireDACCommonDriver;FireDACCommon;vclFireDAC;FireDACSqliteDriver;inet;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -118,18 +118,14 @@
         <DCCReference Include="FireDACCommon.dcp"/>
         <DCCReference Include="vclFireDAC.dcp"/>
         <DCCReference Include="FireDACSqliteDriver.dcp"/>
+        <DCCReference Include="inet.dcp"/>
+        <DCCReference Include="AlcinoeAlexandria.dcp"/>
         <DCCReference Include="UGetJars.pas"/>
         <DCCReference Include="UFGetJars.pas">
             <Form>FGetJars</Form>
         </DCCReference>
         <DCCReference Include="UFAndroidManifest.pas">
             <Form>FManifest</Form>
-        </DCCReference>
-        <DCCReference Include="UFRepositories.pas">
-            <Form>FRepositories</Form>
-        </DCCReference>
-        <DCCReference Include="UAddRep.pas">
-            <Form>FAddRep</Form>
         </DCCReference>
         <DCCReference Include="MyZip.pas"/>
         <DCCReference Include="UFHistory.pas">
@@ -138,6 +134,10 @@
         </DCCReference>
         <DCCReference Include="UFSettings.pas">
             <Form>FSettings</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UFRepositories.pas">
+            <Form>FRepositories</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <RcItem Include="android.bmp">

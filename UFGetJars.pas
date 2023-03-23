@@ -43,17 +43,17 @@ type
     THistory: TFDTable;
     QDefDB: TFDQuery;
     QGetCurrJob: TFDQuery;
-    TRepositories: TFDTable;
+    TRepositoriesNew: TFDTable;
     QInsHist: TFDQuery;
     QGetID: TFDQuery;
     BHistory: TButton;
     QGetJobByDate: TFDQuery;
     QGetJobByName: TFDQuery;
-    QDelRepositories: TFDQuery;
     Button1: TButton;
     TSInclRes: TToggleSwitch;
     MMFGetJars: TMainMenu;
     MISettings: TMenuItem;
+    QDefRepositoriesNew: TFDQuery;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -470,15 +470,6 @@ begin
 
         TJobs.Post;
 
-
-      end;
-
-   if TRepositories.RecordCount = 0
-   then
-      begin
-         TRepositories.InsertRecord(['mavenCentral', 'mavenCentral()']);
-         TRepositories.InsertRecord(['google', 'google()']);
-         TRepositories.InsertRecord(['jcenter', 'jcenter()']);
       end;
 
    QGetCurrJob.Close;
@@ -634,7 +625,12 @@ begin
 
    TJobs.Active := True;
    THistory.Active := True;
-   TRepositories.Active := True;
+
+   if not TRepositoriesNew.Exists
+   then
+      QDefRepositoriesNew.ExecSQL;
+
+   TRepositoriesNew.Active := True;
 
    MStatus.Text := '';
    MJars.Text := '';
@@ -686,20 +682,15 @@ var
 
 begin
 
+   FRepositories.MRepositeries.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+
    if FRepositories.ShowModal = mrOk
    then
       begin
 
-         QDelRepositories.ExecSQL;
-
-         for i := 0 to FRepositories.CLBRepositories.Count - 1 do
-            if FRepositories.CLBRepositories.Checked[i]
-            then
-               begin
-
-                  TRepositories.InsertRecord([StrBefore(' ', FRepositories.CLBRepositories.Items[i]), StrAfter(' ', FRepositories.CLBRepositories.Items[i])]);
-
-               end;
+         TRepositoriesNew.Edit;
+         TRepositoriesNew.FieldByName('RepositoriesDefs').AsString := FRepositories.MRepositeries.Text;
+         TRepositoriesNew.Post;
 
       end;
 
@@ -762,7 +753,7 @@ begin
       Header: integer;
       Found: Boolean;
       TmpStr, TmpStr2: String;
-      SLJobs, SLJars, SLAddJars, SLExclJars, CopyFiles: TStringList;
+      SLJobs, SLJars, SLAddJars, SLExclJars, CopyFiles, SLReposit: TStringList;
       ProjectOptionsConfigurations: IOTAProjectOptionsConfigurations;
       ShortName: string;
       PlatformSDKServices: IOTAPlatformSDKServices;
@@ -969,12 +960,20 @@ begin
 
            FileLines.Add('repositories {');
 
-           TRepositories.First;
+           TRepositoriesNew.First;
 
-           while not TRepositories.Eof do
+           if not TRepositoriesNew.IsEmpty
+           then
               begin
-                 FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                 TRepositories.Next;
+
+                 SLReposit := TStringList.Create;
+                 SLReposit.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+
+                 for i := 0 to SLReposit.Count - 1 do
+                    FileLines.Add('        ' + SLReposit[i]);
+
+                 SLReposit.DisposeOf;
+
               end;
 
            FileLines.Add('}');
@@ -1414,12 +1413,20 @@ begin
 
                        FileLines.Add('repositories {');
 
-                       TRepositories.First;
+                       TRepositoriesNew.First;
 
-                       while not TRepositories.Eof do
+                       if not TRepositoriesNew.IsEmpty
+                       then
                           begin
-                             FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                             TRepositories.Next;
+
+                             SLReposit := TStringList.Create;
+                             SLReposit.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+
+                             for x := 0 to SLReposit.Count - 1 do
+                                FileLines.Add('        ' + SLReposit[x]);
+
+                             SLReposit.DisposeOf;
+
                           end;
 
                        FileLines.Add('}');
@@ -1593,7 +1600,6 @@ begin
             then
                DeleteFile(ProjDir + 'Libs\R.jar');
 
-
            PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
            AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
            AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
@@ -1624,12 +1630,20 @@ begin
            FileLines.Add('buildscript {');
            FileLines.Add('    repositories {');
 
-           TRepositories.First;
+           TRepositoriesNew.First;
 
-           while not TRepositories.Eof do
+           if not TRepositoriesNew.IsEmpty
+           then
               begin
-                 FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                 TRepositories.Next;
+
+                 SLReposit := TStringList.Create;
+                 SLReposit.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+
+                 for x := 0 to SLReposit.Count - 1 do
+                    FileLines.Add('        ' + SLReposit[x]);
+
+                 SLReposit.DisposeOf;
+
               end;
 
            FileLines.Add('    }');
@@ -1677,12 +1691,20 @@ begin
            FileLines.Add('');
            FileLines.Add('    repositories {');
 
-           TRepositories.First;
+           TRepositoriesNew.First;
 
-           while not TRepositories.Eof do
+           if not TRepositoriesNew.IsEmpty
+           then
               begin
-                 FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                 TRepositories.Next;
+
+                 SLReposit := TStringList.Create;
+                 SLReposit.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+
+                 for x := 0 to SLReposit.Count - 1 do
+                    FileLines.Add('        ' + SLReposit[x]);
+
+                 SLReposit.DisposeOf;
+
               end;
 
            FileLines.Add('    }');
@@ -3026,6 +3048,7 @@ begin
       Modul: IOTAModule;
       TmpStr: String;
       Found: Boolean;
+      SLReposit: TStringList;
 
    begin
 
@@ -3140,12 +3163,20 @@ begin
 
                FileLines.Add('repositories {');
 
-              TRepositories.First;
+               TRepositoriesNew.First;
 
-              while not TRepositories.Eof do
+              if not TRepositoriesNew.IsEmpty
+              then
                  begin
-                    FileLines.Add('        ' + TRepositories.FieldByName('Link').AsString);
-                    TRepositories.Next;
+
+                    SLReposit := TStringList.Create;
+                    SLReposit.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+
+                    for x := 0 to SLReposit.Count - 1 do
+                       FileLines.Add('        ' + SLReposit[x]);
+
+                    SLReposit.DisposeOf;
+
                  end;
 
                FileLines.Add('}');

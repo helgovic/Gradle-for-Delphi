@@ -3,8 +3,8 @@ object FGetJars: TFGetJars
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Gradle for Delphi'
-  ClientHeight = 803
-  ClientWidth = 1052
+  ClientHeight = 791
+  ClientWidth = 1044
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -325,7 +325,7 @@ object FGetJars: TFGetJars
     OnClick = BDeleteClick
   end
   object MStatus: TMemo
-    Left = 20
+    Left = 22
     Top = 433
     Width = 1014
     Height = 159
@@ -403,6 +403,7 @@ object FGetJars: TFGetJars
     Params.Strings = (
       'DriverID=SQLite'
       'Database=D:\Downloads\XE11\GetJars\Gradle.db')
+    Connected = True
     LoginPrompt = False
     Left = 75
     Top = 75
@@ -436,14 +437,14 @@ object FGetJars: TFGetJars
   object TJobs: TFDTable
     Connection = FDCJobs
     TableName = 'Jobs'
-    Left = 75
+    Left = 278
     Top = 191
   end
   object THistory: TFDTable
     Connection = FDCJobs
     TableName = 'History'
-    Left = 887
-    Top = 133
+    Left = 75
+    Top = 191
   end
   object QDefDB: TFDQuery
     Connection = FDCJobs
@@ -452,27 +453,35 @@ object FGetJars: TFGetJars
       'BEGIN TRANSACTION;'
       ''
       '-- Table: History'
+      'CREATE TABLE History ('
+      '    JobID            INTEGER  NOT NULL'
       
-        'CREATE TABLE History (JobID INTEGER NOT NULL REFERENCES Jobs (ID' +
-        ') ON DELETE CASCADE, SaveDate DATETIME NOT NULL, Dependencies ST' +
-        'RING NOT NULL, AddDependrencies STRING NOT NULL, ExclJNI STRING ' +
-        'NOT NULL, ExclFinal STRING NOT NULL, InclRes BOOLEAN NOT NULL DE' +
-        'FAULT (False));'
+        '                              REFERENCES Jobs (ID) ON DELETE CAS' +
+        'CADE,'
+      '    SaveDate         DATETIME NOT NULL,'
+      '    Dependencies     STRING   NOT NULL,'
+      '    AddDependrencies STRING   NOT NULL,'
+      '    ExclJNI          STRING   NOT NULL,'
+      '    ExclFinal        STRING   NOT NULL,'
+      '    InclRes          BOOLEAN  NOT NULL'
+      '                              DEFAULT (False) '
+      ');'
+      ''
       ''
       '-- Table: Jobs'
-      
-        'CREATE TABLE Jobs (ID INTEGER PRIMARY KEY NOT NULL UNIQUE, JobNa' +
-        'me STRING NOT NULL);'
-      ''
-      '-- Table: Reposittories'
-      
-        'CREATE TABLE Reposittories (Name STRING PRIMARY KEY NOT NULL UNI' +
-        'QUE, Link STRING NOT NULL);'
+      'CREATE TABLE Jobs ('
+      '    ID      INTEGER PRIMARY KEY'
+      '                    NOT NULL'
+      '                    UNIQUE,'
+      '    JobName STRING  NOT NULL'
+      ');'
       ''
       '-- Index: JobIdx'
-      
-        'CREATE UNIQUE INDEX JobIdx ON History (JobID DESC, SaveDate DESC' +
-        ');'
+      'CREATE UNIQUE INDEX JobIdx ON History ('
+      '    JobID DESC,'
+      '    SaveDate DESC'
+      ');'
+      ''
       ''
       'COMMIT TRANSACTION;'
       'PRAGMA foreign_keys = on;')
@@ -509,9 +518,9 @@ object FGetJars: TFGetJars
         ParamType = ptInput
       end>
   end
-  object TRepositories: TFDTable
+  object TRepositoriesNew: TFDTable
     Connection = FDCJobs
-    TableName = 'Reposittories'
+    TableName = 'ReposittoriesNew'
     Left = 481
     Top = 191
   end
@@ -614,15 +623,6 @@ object FGetJars: TFGetJars
         ParamType = ptInput
       end>
   end
-  object QDelRepositories: TFDQuery
-    Connection = FDCJobs
-    SQL.Strings = (
-      'delete'
-      'from'
-      '  Reposittories')
-    Left = 481
-    Top = 75
-  end
   object MMFGetJars: TMainMenu
     Left = 684
     Top = 191
@@ -630,5 +630,22 @@ object FGetJars: TFGetJars
       Caption = 'Settings'
       OnClick = MISettingsClick
     end
+  end
+  object QDefRepositoriesNew: TFDQuery
+    Connection = FDCJobs
+    SQL.Strings = (
+      'PRAGMA foreign_keys = off;'
+      'BEGIN TRANSACTION;'
+      ''
+      '-- Table: ReposittoriesNew'
+      'CREATE TABLE ReposittoriesNew ('
+      '    RepositoriesDefs STRING'
+      ');'
+      ''
+      ''
+      'COMMIT TRANSACTION;'
+      'PRAGMA foreign_keys = on;')
+    Left = 481
+    Top = 75
   end
 end
