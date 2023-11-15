@@ -54,6 +54,7 @@ type
     MMFGetJars: TMainMenu;
     MISettings: TMenuItem;
     QDefRepositoriesNew: TFDQuery;
+    TSActive: TToggleSwitch;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -222,7 +223,8 @@ begin
 
    ProjectGroup := GetProjectGroup;
 
-   if Assigned(ProjectGroup)
+   if (ProjectGroup <> nil) and
+      (Assigned(ProjectGroup))
    then
       begin
 
@@ -240,14 +242,20 @@ function GetCurrentProjectFileName: string;
 
 var
   IProject: IOTAProject;
+
 begin
+
   Result := '';
 
   IProject := GetCurrentProject;
-  if Assigned(IProject) then
+
+  if (IProject <> nil) and
+     (Assigned(IProject))
+  then
   begin
     Result := IProject.FileName;
   end;
+
 end;
 
 procedure TFGetJars.BNewJobClick(Sender: TObject);
@@ -480,7 +488,11 @@ begin
       ((MJars.Lines.Text <> QGetCurrJob.FieldByName('Dependencies').AsString) or
        (MJars.Lines.Text <> QGetCurrJob.FieldByName('AddDependencies').AsString) or
        (MJars.Lines.Text <> QGetCurrJob.FieldByName('ExclJNI').AsString) or
-       (MJars.Lines.Text <> QGetCurrJob.FieldByName('ExclFinal').AsString))) or
+       (MJars.Lines.Text <> QGetCurrJob.FieldByName('ExclFinal').AsString) or
+       ((TSActive.State = tssOn) and (not QGetCurrJob.FieldByName('Active').AsBoolean)) or
+       ((TSActive.State = tssOff) and (QGetCurrJob.FieldByName('Active').AsBoolean)))) or
+       ((TSInclRes.State = tssOn) and (not QGetCurrJob.FieldByName('InclRes').AsBoolean)) or
+       ((TSInclRes.State = tssOff) and (QGetCurrJob.FieldByName('InclRes').AsBoolean)) or
      (QGetCurrJob.RecordCount = 0)
    then
       begin
@@ -497,6 +509,12 @@ begin
             QInsHist.ParamByName('InclRes').AsBoolean := True
          else
             QInsHist.ParamByName('InclRes').AsBoolean := False;
+
+         if TSActive.State = tssOn
+         then
+            QInsHist.ParamByName('Active').AsBoolean := True
+         else
+            QInsHist.ParamByName('Active').AsBoolean := False;
 
          QInsHist.ExecSQL;
 
@@ -578,6 +596,12 @@ begin
       TSInclRes.State := tssOn
    else
       TSInclRes.State := tssOff;
+
+   if QGetCurrJob.FieldByName('Active').AsBoolean
+   then
+      TSActive.State := tssOn
+   else
+      TSActive.State := tssOff;
 
 end;
 
@@ -676,10 +700,6 @@ begin
 end;
 
 procedure TFGetJars.BAddRepClick(Sender: TObject);
-
-var
-   i: integer;
-
 begin
 
    FRepositories.MRepositeries.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
@@ -1005,6 +1025,10 @@ begin
                  QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
                  QGetCurrJob.Open;
 
+                 if not QGetCurrJob.FieldByName('Active').AsBoolean
+                 then
+                    Continue;
+
                  SLJars.Text := QGetCurrJob.FieldByName('Dependencies').AsString;
 
                  for x := 0 to SLJars.count - 1 do
@@ -1134,6 +1158,10 @@ begin
                  QGetCurrJob.Close;
                  QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
                  QGetCurrJob.Open;
+
+                 if not QGetCurrJob.FieldByName('Active').AsBoolean
+                 then
+                    Continue;
 
                  SLAddJars.Text := QGetCurrJob.FieldByName('AddDependencies').AsString;
 
@@ -1299,6 +1327,10 @@ begin
                     QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
                     QGetCurrJob.Open;
 
+                    if not QGetCurrJob.FieldByName('Active').AsBoolean
+                    then
+                       Continue;
+
                     SLExclJars.Text := QGetCurrJob.FieldByName('ExclFinal').AsString;
 
                     for x := 0 to SLExclJars.count - 1 do
@@ -1373,6 +1405,10 @@ begin
                  QGetCurrJob.Close;
                  QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
                  QGetCurrJob.Open;
+
+                 if not QGetCurrJob.FieldByName('Active').AsBoolean
+                 then
+                    Continue;
 
                  if QGetCurrJob.FieldByName('InclRes').AsBoolean
                  then
@@ -1719,6 +1755,10 @@ begin
                  QGetCurrJob.Close;
                  QGetCurrJob.ParamByName('JobName').AsString := SLJobs[i];
                  QGetCurrJob.Open;
+
+                 if not QGetCurrJob.FieldByName('Active').AsBoolean
+                 then
+                    Continue;
 
                  if QGetCurrJob.FieldByName('InclRes').AsBoolean
                  then

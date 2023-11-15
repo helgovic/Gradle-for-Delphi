@@ -39,8 +39,7 @@ requires
   FireDACCommon,
   vclFireDAC,
   FireDACSqliteDriver,
-  inet,
-  AlcinoeAlexandria;
+  inet;
 
 contains
   UGetJars in 'UGetJars.pas',

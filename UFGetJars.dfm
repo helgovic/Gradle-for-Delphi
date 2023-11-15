@@ -162,7 +162,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 8
     Text = ''
   end
   object MExclJars: TMemo
@@ -198,7 +198,7 @@ object FGetJars: TFGetJars
     Font.Style = []
     ParentCtl3D = False
     ParentFont = False
-    TabOrder = 8
+    TabOrder = 9
     OnSelect = CBProjJobsSelect
   end
   object ASPB: TProgressBar
@@ -212,7 +212,7 @@ object FGetJars: TFGetJars
     BarColor = clBlue
     BackgroundColor = clBlack
     ShowHint = False
-    TabOrder = 6
+    TabOrder = 7
     TabStop = True
   end
   object TSKeepLibs: TToggleSwitch
@@ -231,7 +231,7 @@ object FGetJars: TFGetJars
     StateCaptions.CaptionOn = 'Keep temporary directories'
     StateCaptions.CaptionOff = 'Delete temporary directories'
     SwitchWidth = 40
-    TabOrder = 9
+    TabOrder = 10
     ThumbColor = clGreen
   end
   object BGo: TButton
@@ -246,7 +246,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 12
+    TabOrder = 13
     OnClick = BGoClick
   end
   object BAddRep: TButton
@@ -261,7 +261,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 13
+    TabOrder = 14
     OnClick = BAddRepClick
   end
   object BClose: TButton
@@ -277,7 +277,7 @@ object FGetJars: TFGetJars
     Font.Style = []
     ModalResult = 8
     ParentFont = False
-    TabOrder = 11
+    TabOrder = 12
   end
   object BNewJob: TButton
     Left = 531
@@ -291,7 +291,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 15
+    TabOrder = 16
     OnClick = BNewJobClick
   end
   object BSave: TButton
@@ -306,7 +306,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 14
+    TabOrder = 15
     OnClick = BSaveClick
   end
   object BDelete: TButton
@@ -321,7 +321,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 16
+    TabOrder = 17
     OnClick = BDeleteClick
   end
   object MStatus: TMemo
@@ -338,7 +338,7 @@ object FGetJars: TFGetJars
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 5
+    TabOrder = 6
   end
   object BCompileAll: TButton
     Left = 773
@@ -352,7 +352,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 17
+    TabOrder = 18
     OnClick = BCompileAllClick
   end
   object BHistory: TButton
@@ -367,7 +367,7 @@ object FGetJars: TFGetJars
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 18
+    TabOrder = 19
     OnClick = BHistoryClick
   end
   object Button1: TButton
@@ -376,7 +376,7 @@ object FGetJars: TFGetJars
     Width = 57
     Height = 29
     Caption = 'Button1'
-    TabOrder = 10
+    TabOrder = 11
     Visible = False
     OnClick = Button1Click
   end
@@ -399,11 +399,30 @@ object FGetJars: TFGetJars
     TabOrder = 4
     ThumbColor = clGreen
   end
+  object TSActive: TToggleSwitch
+    Left = 194
+    Top = 377
+    Width = 86
+    Height = 20
+    Color = 3288877
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    FrameColor = clWhite
+    ParentFont = False
+    State = tssOn
+    StateCaptions.CaptionOn = 'Active'
+    StateCaptions.CaptionOff = 'InActive'
+    SwitchWidth = 40
+    TabOrder = 5
+    ThumbColor = clGreen
+  end
   object FDCJobs: TFDConnection
     Params.Strings = (
       'DriverID=SQLite'
       'Database=D:\Downloads\XE11\GetJars\Gradle.db')
-    Connected = True
     LoginPrompt = False
     Left = 75
     Top = 75
@@ -441,7 +460,9 @@ object FGetJars: TFGetJars
     Top = 191
   end
   object THistory: TFDTable
+    IndexFieldNames = 'JobID;SaveDate'
     Connection = FDCJobs
+    ResourceOptions.AssignedValues = [rvEscapeExpand]
     TableName = 'History'
     Left = 75
     Top = 191
@@ -454,17 +475,19 @@ object FGetJars: TFGetJars
       ''
       '-- Table: History'
       'CREATE TABLE History ('
-      '    JobID            INTEGER  NOT NULL'
+      '    JobID           INTEGER  NOT NULL'
       
-        '                              REFERENCES Jobs (ID) ON DELETE CAS' +
-        'CADE,'
-      '    SaveDate         DATETIME NOT NULL,'
-      '    Dependencies     STRING   NOT NULL,'
-      '    AddDependrencies STRING   NOT NULL,'
-      '    ExclJNI          STRING   NOT NULL,'
-      '    ExclFinal        STRING   NOT NULL,'
-      '    InclRes          BOOLEAN  NOT NULL'
-      '                              DEFAULT (False) '
+        '                             REFERENCES Jobs (ID) ON DELETE CASC' +
+        'ADE,'
+      '    SaveDate        DATETIME NOT NULL,'
+      '    Dependencies    STRING   NOT NULL,'
+      '    AddDependencies STRING   NOT NULL,'
+      '    ExclJNI         STRING   NOT NULL,'
+      '    ExclFinal       STRING   NOT NULL,'
+      '    InclRes         BOOLEAN  NOT NULL'
+      '                             DEFAULT (False),'
+      '    Active          BOOLEAN  DEFAULT (True) '
+      '                             NOT NULL'
       ');'
       ''
       ''
@@ -475,6 +498,13 @@ object FGetJars: TFGetJars
       '                    UNIQUE,'
       '    JobName STRING  NOT NULL'
       ');'
+      ''
+      ''
+      '-- Table: ReposittoriesNew'
+      'CREATE TABLE ReposittoriesNew ('
+      '    RepositoriesDefs STRING'
+      ');'
+      ''
       ''
       '-- Index: JobIdx'
       'CREATE UNIQUE INDEX JobIdx ON History ('
@@ -491,25 +521,23 @@ object FGetJars: TFGetJars
   object QGetCurrJob: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (
-      'Select'
+      'Select '
       '  h.SaveDate,'
       '  h.Dependencies,'
       '  h.AddDependencies,'
       '  h.ExclJNI,'
       '  h.ExclFinal,'
-      '  h.InclRes'
+      '  h.InclRes,'
+      '  h.Active'
       'From'
       '  History h,'
       '  Jobs j'
       'Where'
-      '  h.JobID = j.ID And'
-      '  (h.SaveDate = (Select'
-      '    Max(History.SaveDate)'
-      '  From'
-      '    History'
-      '  Where'
-      '    History.JobID = j.ID) And'
-      '  j.JobName = :JobName)')
+      '  h.JobID = j.ID and '
+      
+        '  h.SaveDate = (Select Max(History.SaveDate) As FIELD_1 From His' +
+        'tory Where History.JobID = j.ID) and '
+      '  j.JobName = :JobName')
     Left = 684
     Top = 75
     ParamData = <
@@ -534,7 +562,8 @@ object FGetJars: TFGetJars
       '             AddDependencies,'
       '             ExclJNI,'
       '             ExclFinal,'
-      '             InclRes)'
+      '             InclRes,'
+      '             Active)'
       '      values((select ID'
       '                from Jobs'
       '               where JobName = :JobName),'
@@ -543,7 +572,8 @@ object FGetJars: TFGetJars
       '               :AddDependencies,'
       '               :ExclJNI,'
       '               :ExclFinal,'
-      '               :InclRes)')
+      '               :InclRes,'
+      '               :Active)')
     Left = 684
     Top = 133
     ParamData = <
@@ -574,6 +604,10 @@ object FGetJars: TFGetJars
       item
         Name = 'INCLRES'
         ParamType = ptInput
+      end
+      item
+        Name = 'ACTIVE'
+        ParamType = ptInput
       end>
   end
   object QGetID: TFDQuery
@@ -587,16 +621,20 @@ object FGetJars: TFGetJars
   object QGetJobByDate: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (
-      'Select h.Dependencies,'
-      '       h.AddDependencies,'
-      '       h.ExclJNI,'
-      '       h.ExclFinal,'
-      '       h.InclRes'
-      '  from History h,'
-      '       Jobs j'
-      ' where j.JobName = :JobName'
-      '   and h.JobID = j.ID'
-      ' and h.SaveDate = :Date')
+      'Select '
+      '  h.Dependencies,'
+      '  h.AddDependencies,'
+      '  h.ExclJNI,'
+      '  h.ExclFinal,'
+      '  h.InclRes,'
+      '  h.Active'
+      'From'
+      '  History h,'
+      '  Jobs j'
+      'Where'
+      '  j.JobName = :JobName and '
+      '  h.JobID = j.ID and '
+      '  h.SaveDate = :Date')
     Left = 75
     Top = 133
     ParamData = <
@@ -615,8 +653,8 @@ object FGetJars: TFGetJars
       'Select ID'
       'from Jobs'
       'where JobName = :JobName')
-    Left = 278
-    Top = 133
+    Left = 284
+    Top = 137
     ParamData = <
       item
         Name = 'JOBNAME'
