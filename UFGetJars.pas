@@ -553,6 +553,7 @@ begin
       FSettings.BEJIPath.Text := ReadString(REG_BUILD_OPTIONS, 'JavaImport Location', '');
       FSettings.RBJava2OP.Checked := ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
       FSettings.RbJavaImport.Checked := not ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
+      FSettings.BEJDKHome.Text := ReadString(REG_BUILD_OPTIONS, 'JDK Location', '');
    finally
       Free;
    end;
@@ -789,12 +790,24 @@ begin
       ProjFileLinesIn: TStringList;
       ProjFileLinesOut: TStringList;
       IDEHandle: HWND;
-      IDEThread: DWORD;
       OtherHandle: HWND;
-      OtherThread: DWORD;
       ProjPackage: String;
 
    begin
+
+      with TRegIniFile.Create(REG_KEY) do
+      try
+
+         if ReadString(REG_BUILD_OPTIONS, 'JDK Location', '') = ''
+         then
+           begin
+              ShowMessage('Please enter JDK home path, in MainMenu->Settings');
+              Exit;
+           end;
+
+      finally
+         Free;
+      end;
 
       if not DirectoryExists(ExtractFilePath(GetCurrentProjectFileName) + 'Archive')
       then
@@ -1655,7 +1668,7 @@ begin
 
             if StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i])) = '%targetSdkVersion%'
             then
-               TargetSDK := '32'
+               TargetSDK := '34'
             else
                TargetSDK := StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i]));
 
@@ -1685,7 +1698,7 @@ begin
            FileLines.Add('    }');
            FileLines.Add('');
            FileLines.Add('    dependencies {');
-           FileLines.Add('        classpath "com.android.tools.build:gradle:4.2.2"');
+           FileLines.Add('        classpath "com.android.tools.build:gradle:7.3.1"');
            FileLines.Add('    }');
            FileLines.Add('}');
            FileLines.Add('');
@@ -1978,7 +1991,16 @@ begin
            FileLines.Add('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8');
            FileLines.Add('android.useAndroidX=true');
            FileLines.Add('android.enableJetifier=true');
-           FileLines.Add('android.enableResourceOptimizations=false');
+
+            with TRegIniFile.Create(REG_KEY) do
+            try
+
+               FileLines.Add('org.gradle.java.home=' + StringReplace(ReadString(REG_BUILD_OPTIONS, 'JDK Location', ''), '\', '\\', [rfReplaceAll]));
+
+            finally
+               Free;
+            end;
+
            FileLines.SaveToFile(ResDir + '\gradle.properties');
 
            if DirectoryExists(ProjDir + '\res')
@@ -2067,9 +2089,9 @@ begin
 
            if GetCurrentProject.CurrentConfiguration = 'Debug'
            then
-              TDirectory.Copy(ResDir + '\build\intermediates\incremental\mergeDebugResources\merged.dir', MergResDir)
+              TDirectory.Copy(ResDir + '\build\intermediates\incremental\debug\mergeDebugResources\merged.dir', MergResDir)
            else
-              TDirectory.Copy(ResDir + '\build\intermediates\incremental\mergeReleaseResources\merged.dir', MergResDir);
+              TDirectory.Copy(ResDir + '\build\intermediates\incremental\release\mergeReleaseResources\merged.dir', MergResDir);
 
            DirList := TDirectory.GetDirectories(LibsDir + '\Resources', 'res', TSearchOption.soAllDirectories);
 

@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, DateUtils;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, DateUtils, Vcl.WinXCtrls;
 
 type
   TFHistory = class(TForm)
@@ -61,6 +61,8 @@ begin
          FGetJars.QInsHist.ParamByName('AddDependencies').AsString := FGetJars.QGetJobByDate.FieldByName('AddDependencies').AsString;
          FGetJars.QInsHist.ParamByName('ExclJNI').AsString :=  FGetJars.QGetJobByDate.FieldByName('ExclJNI').AsString;
          FGetJars.QInsHist.ParamByName('ExclFinal').AsString :=  FGetJars.QGetJobByDate.FieldByName('ExclFinal').AsString;
+         FGetJars.QInsHist.ParamByName('InclRes').AsBoolean :=  FGetJars.QGetJobByDate.FieldByName('InclRes').AsBoolean;
+         FGetJars.QInsHist.ParamByName('Active').AsBoolean :=  FGetJars.QGetJobByDate.FieldByName('Active').AsBoolean;
          FGetJars.QInsHist.ExecSQL;
 
       end;
@@ -116,10 +118,22 @@ begin
    FGetJars.QGetJobByDate.ParamByName('Date').AsDateTime := TDTObj(LBHistory.Items.Objects[LBHistory.ItemIndex]).DT;
    FGetJars.QGetJobByDate.Open;
 
-   FGetJars.MJars.Lines.Text := IniStrToMemoStr(FGetJars.QGetJobByDate.FieldByName('Dependencies').AsString);
-   FGetJars.MAddJars.Lines.Text := IniStrToMemoStr(FGetJars.QGetJobByDate.FieldByName('AddDependencies').AsString);
-   FGetJars.MExclJars.Lines.Text := IniStrToMemoStr(FGetJars.QGetJobByDate.FieldByName('ExclJNI').AsString);
-   FGetJars.MExclFinal.Lines.Text := IniStrToMemoStr(FGetJars.QGetJobByDate.FieldByName('ExclFinal').AsString);
+   FGetJars.MJars.Lines.Text := FGetJars.QGetJobByDate.FieldByName('Dependencies').AsString;
+   FGetJars.MAddJars.Lines.Text := FGetJars.QGetJobByDate.FieldByName('AddDependencies').AsString;
+   FGetJars.MExclJars.Lines.Text := FGetJars.QGetJobByDate.FieldByName('ExclJNI').AsString;
+   FGetJars.MExclFinal.Lines.Text := FGetJars.QGetJobByDate.FieldByName('ExclFinal').AsString;
+
+   if FGetJars.QGetJobByDate.FieldByName('InclRes').AsBoolean
+   then
+      FGetJars.TSInclRes.State := tssOn
+   else
+      FGetJars.TSInclRes.State := tssOff;
+
+   if FGetJars.QGetJobByDate.FieldByName('Active').AsBoolean
+   then
+      FGetJars.TSActive.State := tssOn
+   else
+      FGetJars.TSActive.State := tssOff;
 
 end;
 

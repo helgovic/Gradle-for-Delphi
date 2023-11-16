@@ -3,8 +3,8 @@ object FHistory: TFHistory
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Job History'
-  ClientHeight = 400
-  ClientWidth = 392
+  ClientHeight = 395
+  ClientWidth = 358
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,12 +14,11 @@ object FHistory: TFHistory
   FormStyle = fsStayOnTop
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object LBHistory: TListBox
     Left = 0
     Top = 0
-    Width = 392
+    Width = 358
     Height = 319
     Align = alTop
     ItemHeight = 15

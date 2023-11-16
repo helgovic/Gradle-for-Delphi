@@ -3,8 +3,8 @@ object FSettings: TFSettings
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Settings'
-  ClientHeight = 417
-  ClientWidth = 608
+  ClientHeight = 393
+  ClientWidth = 592
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,16 +13,23 @@ object FSettings: TFSettings
   Font.Style = []
   Position = poDesktopCenter
   TextHeight = 15
+  object Label3: TLabel
+    Left = 16
+    Top = 159
+    Width = 94
+    Height = 15
+    Caption = 'Path to JDK home'
+  end
   object Panel1: TPanel
     Left = 0
-    Top = 342
-    Width = 608
+    Top = 318
+    Width = 592
     Height = 75
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 1
-    ExplicitTop = 354
-    ExplicitWidth = 616
+    TabOrder = 2
+    ExplicitTop = 306
+    ExplicitWidth = 584
     object BOK: TButton
       Left = 193
       Top = 13
@@ -119,6 +126,19 @@ object FSettings: TFSettings
       TabOrder = 3
       OnRightButtonClick = BEJIPathRightButtonClick
     end
+  end
+  object BEJDKHome: TButtonedEdit
+    Left = 16
+    Top = 178
+    Width = 575
+    Height = 23
+    AutoSelect = False
+    Images = ImageList1
+    LeftButton.ImageIndex = 1
+    RightButton.ImageIndex = 0
+    RightButton.Visible = True
+    TabOrder = 1
+    OnRightButtonClick = BEJDKHomeRightButtonClick
   end
   object FileOpenDialog: TFileOpenDialog
     FavoriteLinks = <>

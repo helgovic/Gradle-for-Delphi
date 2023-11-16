@@ -21,9 +21,12 @@ type
     BEJIPath: TButtonedEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
+    BEJDKHome: TButtonedEdit;
     procedure BEJ2OPathRightButtonClick(Sender: TObject);
     procedure BEJIPathRightButtonClick(Sender: TObject);
     procedure BOKClick(Sender: TObject);
+    procedure BEJDKHomeRightButtonClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -48,6 +51,19 @@ begin
       begin
 
          BEJ2OPath.Text := FileOpenDialog.FileName;
+
+      end;
+
+end;
+
+procedure TFSettings.BEJDKHomeRightButtonClick(Sender: TObject);
+begin
+
+   if FileOpenDialog.Execute
+   then
+      begin
+
+         BEJDKHome.Text := FileOpenDialog.FileName;
 
       end;
 
@@ -112,10 +128,27 @@ begin
 
       end;
 
+   if BEJDKHome.Text = ''
+   then
+      begin
+         ShowMessage('Please enter path to JDK');
+         BEJDKHome.SetFocus;
+         Exit;
+      end;
+
+   if not DirectoryExists(BEJDKHome.Text)
+   then
+      begin
+         ShowMessage('Directory ' + BEJDKHome.Text + ' does not exist');
+         BEJDKHome.SetFocus;
+         Exit;
+      end;
+
    with TRegIniFile.Create(REG_KEY) do
    try
       WriteString(REG_BUILD_OPTIONS, 'Java2op Location', BEJ2OPath.Text);
       WriteString(REG_BUILD_OPTIONS, 'JavaImport Location', BEJIPath.Text);
+      WriteString(REG_BUILD_OPTIONS, 'JDK Location', BEJDKHome.Text);
       WriteBool(REG_BUILD_OPTIONS, 'Java2OP', RBJava2OP.Checked);
    finally
       Free;

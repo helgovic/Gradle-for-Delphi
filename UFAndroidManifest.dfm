@@ -3,8 +3,8 @@ object FManifest: TFManifest
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'AndroidManifest'
-  ClientHeight = 298
-  ClientWidth = 532
+  ClientHeight = 302
+  ClientWidth = 516
   Color = 3288877
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

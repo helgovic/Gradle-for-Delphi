@@ -51,7 +51,7 @@ type
 implementation
 
 uses
-   JclStrings, UFGetJars, UFAndroidManifest, UFRepositories, UAddRep, UFHistory, UFSettings;
+   JclStrings, UFGetJars, UFAndroidManifest, UFRepositories, UFHistory, UFSettings;
 
 var
    FGetJarsExpert: TGetJarsExpert;
@@ -185,14 +185,12 @@ begin
          FGetJars := TFGetJars.Create(nil);
          FManifest := TFManifest.Create(nil);
          FRepositories := TFRepositories.Create(nil);
-         FAddRep := TFAddRep.Create(nil);
          FHistory := TFHistory.Create(nil);
          FSettings := TFSettings.Create(nil);
 
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFGetJars, FGetJars);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFManifest, FManifest);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFRepositories, FRepositories);
-         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFAddRep, FAddRep);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFHistory, FHistory);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFSettings, FSettings);
 
@@ -268,15 +266,15 @@ begin
 
 //  (BorlandIDEServices as IOTACompileServices).RemoveNotifier(IDENot);
 
-//   FGetJars.FDCJobs.Connected := False;
+   FGetJars.FDCJobs.Connected := False;
 //
-   FMenuGetJars.Free;
-   FActionGetJars.Free;
-   FManifest.Free;
-   FRepositories.Free;
-   FAddRep.Free;
-   FHistory.Free;
-   FGetJars.Free;
+   FMenuGetJars.DisposeOf;
+   FActionGetJars.DisposeOf;
+   FManifest.DisposeOf;
+   FRepositories.DisposeOf;
+   FHistory.DisposeOf;
+   FGetJars.DisposeOf;
+   FSettings.DisposeOf;
 
    inherited Destroy;
 
