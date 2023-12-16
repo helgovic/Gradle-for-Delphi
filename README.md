@@ -12,10 +12,10 @@ Install GetJars addon, and a new menuitem "Gradle" will appear under the Project
 
 Copy your java2op directory (e.g. C:\Program Files (x86)\Embarcadero\Studio\21.0\bin\converters\java2op) to a directory with no spaces in the path (e.g. C:\Java2OP).
 
-HOW TO USE:
-
-Enter the path of your Java2OP/JavaImport directory in the Settings.
+Enter the path of your Java2OP/JavaImport/JDK directories in Mainmenu->Settings.
 Enter path to JDK that is to be used mby Gradle when it processes resources. The JDK version should be version 17.
+
+HOW TO USE:
 
 You have to edit the cache.txt in the Java2OP/JavaImport directory. if e.g. you are downloading google play services, you have to remove those entries. 
 You also have to disable the build in jars in your projects libs entries. You should avoid using buildin libs, except for FMX.jar.
