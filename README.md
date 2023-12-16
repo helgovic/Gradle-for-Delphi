@@ -3,7 +3,7 @@ Download dependencies from repositories, extract and create new jar, create JNI 
 
 This addon adds gradle functionality to the Delphi IDE. It downloads Libraries with all dependencies. It then extract all the classes from the jar files, and creates a new jar with these classes. This jar is run through Java2OP to create a JNI file. This JNI file and the jar file are added to the project.  
 
-You have to download gradle from here https://gradle.org/releases/.
+You have to download gradle 8.1 from here https://gradle.org/releases/.
 Install and add gradle to your path variable.
 
 You need to have JEDI JCL installed.
@@ -15,10 +15,12 @@ Copy your java2op directory (e.g. C:\Program Files (x86)\Embarcadero\Studio\21.0
 HOW TO USE:
 
 Enter the path of your Java2OP/JavaImport directory in the Settings.
+Enter path to JDK that is to be used mby Gradle when it processes resources. The JDK version should be version 17.
+
 You have to edit the cache.txt in the Java2OP/JavaImport directory. if e.g. you are downloading google play services, you have to remove those entries. 
 You also have to disable the build in jars in your projects libs entries. You should avoid using buildin libs, except for FMX.jar.
 
-Add jobs that contain logical units of work. 
+Add jobs that contain logical units of work. Do not put everything in one job, as the resulting jni file can grow very large, and Delphi cannot compile JNI with more than a 100000-120000 lines.
 
 In the "Job name" box enter a jobname. This will name the JNI file.
 
@@ -42,7 +44,7 @@ When you are ready to compile your app, compile project jar by clicking "Compile
 
 RESOURCES
 
-Processing of resouces from libraries will merge resources from your project (Place your resources in YOURPROJECT\Res directory), with resouces from dependencies, and place these in folder YOURPROJECT\MergedRes. Resouces from YOURPROJECT\MergedRes will be added to your Deployment files. A R.jar containing R.class'es for the libraries will be generated and added to project. Remember, if you make updates to your apps resources, you need to run "Compile Project Jar". 
+Processing of resouces from libraries will merge resources from your project (Place your own resources in YOURPROJECT\Res directory), with resouces from dependencies, and place these in folder YOURPROJECT\MergedRes. Resouces from YOURPROJECT\MergedRes will be added to your Deployment files. A R.jar containing R.class'es for the libraries will be generated and added to project. Remember, if you make updates to your own app's resources, you need to run "Compile Project Jar". 
 
 EXCLUSION PARAMETERS
 
