@@ -301,7 +301,22 @@ begin
      ITS : IOTAIDEThemingServices;
   {$ENDIF Ver350}
 
+   {$IFDEF Ver360}
+   Var
+     ITS : IOTAIDEThemingServices;
+  {$ENDIF Ver360}
+
    Begin
+
+     {$IFDEF Ver360}
+     If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then
+       If ITS.IDEThemingEnabled Then
+         Begin
+           ITS.RegisterFormClass(AFormClass);
+           If Assigned(Component) Then
+             ITS.ApplyTheme(Component);
+         End;
+     {$ENDIF Ver360}
 
      {$IFDEF Ver350}
      If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then

@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, ToolsAPI, Threading, Vcl.ExtCtrls,
-  MyZip, System.IOUtils, JclFileUtils, Vcl.ComCtrls, Vcl.WinXCtrls, PlatformAPI, Vcl.Mask, FireDAC.Stan.Intf,
+  System.zip, System.IOUtils, JclFileUtils, Vcl.ComCtrls, Vcl.WinXCtrls, PlatformAPI, Vcl.Mask, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef, FireDAC.Stan.ExprFuncs,
@@ -773,6 +773,7 @@ begin
       NestLevel: integer;
       Header: integer;
       Found: Boolean;
+      ProjFound: Boolean;
       TmpStr, TmpStr2: String;
       SLJobs, SLJars, SLAddJars, SLExclJars, CopyFiles, SLReposit: TStringList;
       ProjectOptionsConfigurations: IOTAProjectOptionsConfigurations;
@@ -951,27 +952,35 @@ begin
                  Exit;
               end;
 
-            if not CreateDir(ResDir + '\src')
+            if not CreateDir(ResDir + '\app')
             then
               begin
                  Errors := True;
-                 ShowMessage('There was an error creating GradRes\src Folder');
+                 ShowMessage('There was an error creating GradRes\app Folder');
                  Exit;
               end;
 
-            if not CreateDir(ResDir + '\src\main')
+            if not CreateDir(ResDir + '\app\src')
             then
               begin
                  Errors := True;
-                 ShowMessage('There was an error creating GradRes\src\main Folder');
+                 ShowMessage('There was an error creating GradRes\app\src Folder');
                  Exit;
               end;
 
-            if not CreateDir(ResDir + '\src\main\res')
+            if not CreateDir(ResDir + '\app\src\main')
             then
               begin
                  Errors := True;
-                 ShowMessage('There was an error creating GradRes\src\main\res Folder');
+                 ShowMessage('There was an error creating GradRes\app\src\main Folder');
+                 Exit;
+              end;
+
+            if not CreateDir(ResDir + '\app\src\main\res')
+            then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error creating GradRes\app\src\main\res Folder');
                  Exit;
               end;
 
@@ -1108,7 +1117,7 @@ begin
               FileLines.Add('}');
               FileLines.Add('');
               FileLines.Add('task getDeps(type: Copy) {');
-              FileLines.Add('    duplicatesStrategy = ''include''');
+              FileLines.Add('    setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)');
               FileLines.Add('    from configurations.myConfig');
               FileLines.Add('    into ''' + StringReplace(LibsDir, '\', '/', [rfReplaceAll]) + '''');
               FileLines.Add('}');
@@ -1550,7 +1559,7 @@ begin
                        FileLines.Add('}');
                        FileLines.Add('');
                        FileLines.Add('task getDeps(type: Copy) {');
-                       FileLines.Add('    duplicatesStrategy = ''include''');
+                       FileLines.Add('    setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)');
                        FileLines.Add('    from configurations.myConfig');
                        FileLines.Add('    into ''' + StringReplace(LibsDir + '\Resources', '\', '/', [rfReplaceAll]) + '''');
                        FileLines.Add('}');
@@ -1672,43 +1681,138 @@ begin
             else
                TargetSDK := StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i]));
 
+            ProjFound := False;
+
+            If Supports(GetActiveProject.ProjectOptions, IOTAProjectOptionsConfigurations, ProjectOptionsConfigurations)
+            Then
+               begin
+
+                  for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
+                     begin
+
+                       if ProjectOptionsConfigurations.Configurations[x].Name = GetCurrentProject.CurrentConfiguration
+                       then
+                          begin
+
+                             if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
+                             then
+                                begin
+
+                                   for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
+                                      begin
+
+                                         if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                         then
+                                            begin
+
+                                               ProjFound := True;
+
+                                               ProjPackage := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                               if Pos('$(MSBuildProjectName)', ProjPackage) > 0
+                                               then
+                                                  ProjPackage := StringReplace(ProjPackage, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                               if Pos('$(ModuleName)', ProjPackage) > 0
+                                               then
+                                                  ProjPackage := StringReplace(ProjPackage, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);;
+
+                                               FileLines.Add('        package="' + ProjPackage + '">');
+
+                                               Break;
+
+                                            end;
+
+                                      end;
+
+                                end;
+
+                             Break;
+
+                          end;
+                     end;
+
+               end;
+
            FileLines.DisposeOf;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
-           FileLines.Add('buildscript {');
-           FileLines.Add('    repositories {');
+           FileLines.Add('#Fri Mar 17 15:27:20 GMT 2023');
+           FileLines.Add('distributionUrl=https\://services.gradle.org/distributions/gradle-8.1-all.zip');
+           FileLines.Add('distributionPath=wrapper/dists');
+           FileLines.Add('zipStorePath=wrapper/dists');
+           FileLines.Add('zipStoreBase=GRADLE_USER_HOME');
 
-           TRepositoriesNew.First;
+           FileLines.SaveToFile(ResDir + '\gradle-wrapper.properties');
 
-           if not TRepositoriesNew.IsEmpty
+           if DirectoryExists(ProjDir + '\res')
            then
-              begin
+              TDirectory.Copy(ProjDir + '\res', ResDir + '\app\src\main\res');
 
-                 SLReposit := TStringList.Create;
-                 SLReposit.Text := TRepositoriesNew.FieldByName('RepositoriesDefs').AsString;
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
 
-                 for x := 0 to SLReposit.Count - 1 do
-                    FileLines.Add('        ' + SLReposit[x]);
-
-                 SLReposit.DisposeOf;
-
-              end;
-
-           FileLines.Add('    }');
-           FileLines.Add('');
-           FileLines.Add('    dependencies {');
-           FileLines.Add('        classpath "com.android.tools.build:gradle:7.3.1"');
+           FileLines.Add('pluginManagement {');
+           FileLines.Add('    repositories {');
+           FileLines.Add('        google()');
+           FileLines.Add('        mavenCentral()');
+           FileLines.Add('        gradlePluginPortal()');
            FileLines.Add('    }');
            FileLines.Add('}');
-           FileLines.Add('');
-           FileLines.Add('apply plugin: ''com.android.application'';');
+           FileLines.Add('plugins {');
+           FileLines.Add('    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"');
+           FileLines.Add('}');
+           FileLines.Add('rootProject.name = "GradRes"');
+           FileLines.Add('include("app")');
+
+           FileLines.SaveToFile(ResDir + '\settings.gradle');
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
+           FileLines.Add('cd "' + ResDir + '"');
+           FileLines.Add('Gradle wrapper');
+           FileLines.SaveToFile(ResDir + '\Commands.bat');
+
+           if Execute(ResDir + '\Commands.bat', ExecOut) <> 0
+           then
+              begin
+                 Errors := True;
+                 ShowMessage('There was an error running resource task. Please check Output');
+                 Exit;
+              end;
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add('plugins {');
+           FileLines.Add('    id ''com.android.application'' version ''8.1.1'' apply false');
+           FileLines.Add('    id ''com.android.library'' version ''8.1.1'' apply false');
+//           FileLines.Add('    id ''org.jetbrains.kotlin.android'' version ''1.6.10'' apply false');
+           FileLines.Add('}');
+
+           FileLines.SaveToFile(ResDir + '\build.gradle');
+
+           FileLines.DisposeOf;
+           FileLines := TStringList.Create;
+           FileLines.Clear;
+
+           FileLines.Add('plugins {');
+           FileLines.Add('    id ''com.android.application''');
+           FileLines.Add('}');
            FileLines.Add('');
            FileLines.Add('android {');
+           FileLines.Add('    namespace ''' + ProjPackage + '''');
            FileLines.Add('    compileSdkVersion ' + TargetSDK);
            FileLines.Add('    buildToolsVersion "' + BuildToolsVer + '"');
            FileLines.Add('');
            FileLines.Add('    defaultConfig {');
+           FileLines.Add('        applicationId "' + ProjPackage + '"');
            FileLines.Add('        minSdkVersion ' + MinSDK);
            FileLines.Add('        targetSdkVersion ' + TargetSDK);
            FileLines.Add('        versionCode 1');
@@ -1726,6 +1830,29 @@ begin
            FileLines.Add('    }');
            FileLines.Add('');
            FileLines.Add('    packagingOptions {');
+           FileLines.Add('        resources {');
+           FileLines.Add('            excludes += "/META-INF/{AL2.0,LGPL2.1}"');
+           FileLines.Add('        }');
+           FileLines.Add('    }');
+//           FileLines.Add('    buildFeatures {');
+//           FileLines.Add('        compose true');
+//           FileLines.Add('    }');
+
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+//        vectorDrawables {
+//            useSupportLibrary true
+//        }
+//    kotlinOptions {
+//        jvmTarget = "1.8"
+//    }
+//    buildFeatures {
+//        compose true
+//    }
+//    composeOptions {
+//        kotlinCompilerExtensionVersion compose_compiler_version
+//    }
+
+           FileLines.Add('    packagingOptions {');
            FileLines.Add('        exclude ''META-INF/DEPENDENCIES''');
            FileLines.Add('    }');
            FileLines.Add('');
@@ -1738,6 +1865,7 @@ begin
            FileLines.Add('        viewBinding = true');
            FileLines.Add('    }');
            FileLines.Add('');
+
            FileLines.Add('    repositories {');
 
            TRepositoriesNew.First;
@@ -1862,7 +1990,7 @@ begin
 
            FileLines.Add('}');
 
-           FileLines.SaveToFile(ResDir + '\Build.Gradle');
+           FileLines.SaveToFile(ResDir + '\app\Build.Gradle');
 
            FileLines.DisposeOf;
            FileLines := TStringList.Create;
@@ -1871,111 +1999,61 @@ begin
            FileLines.Add('<?xml version="1.0" encoding="utf-8"?>');
            FileLines.Add('<manifest xmlns:android="http://schemas.android.com/apk/res/android"');
 
-            If Supports(GetActiveProject.ProjectOptions, IOTAProjectOptionsConfigurations, ProjectOptionsConfigurations)
-            Then
+            if not ProjFound
+            then
+               for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
                begin
 
-                  Found := False;
+                 if ProjectOptionsConfigurations.Configurations[x].Name = 'Base'
+                 then
+                    begin
 
-                  for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
-                     begin
-
-                       if ProjectOptionsConfigurations.Configurations[x].Name = GetCurrentProject.CurrentConfiguration
+                       if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
                        then
                           begin
 
-                             if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
-                             then
+                             for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
                                 begin
 
-                                   for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
+                                   if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                   then
                                       begin
 
-                                         if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                         TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                         if Pos('$(MSBuildProjectName)', TmpStr) > 0
                                          then
-                                            begin
+                                            TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
 
-                                               Found := True;
+                                         if Pos('$(ModuleName)', TmpStr) > 0
+                                         then
+                                            TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
 
-                                               ProjPackage := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+                                         FileLines.Add('        package="' + TmpStr + '">');
 
-                                               if Pos('$(MSBuildProjectName)', ProjPackage) > 0
-                                               then
-                                                  ProjPackage := StringReplace(ProjPackage, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                                               if Pos('$(ModuleName)', ProjPackage) > 0
-                                               then
-                                                  ProjPackage := StringReplace(ProjPackage, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);;
-
-                                               FileLines.Add('        package="' + ProjPackage + '">');
-
-                                               Break;
-
-                                            end;
+                                         Break;
 
                                       end;
 
                                 end;
 
-                             Break;
-
                           end;
-                     end;
 
-                  if not Found
-                  then
-                     for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
-                     begin
+                       Break;
 
-                       if ProjectOptionsConfigurations.Configurations[x].Name = 'Base'
-                       then
-                          begin
-
-                             if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
-                             then
-                                begin
-
-                                   for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
-                                      begin
-
-                                         if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
-                                         then
-                                            begin
-
-                                               TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
-
-                                               if Pos('$(MSBuildProjectName)', TmpStr) > 0
-                                               then
-                                                  TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                                               if Pos('$(ModuleName)', TmpStr) > 0
-                                               then
-                                                  TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                                               FileLines.Add('        package="' + TmpStr + '">');
-
-                                               Break;
-
-                                            end;
-
-                                      end;
-
-                                end;
-
-                             Break;
-
-                          end;
-                     end;
-
-               end;
+                    end;
+               end
+            else
+               FileLines.Add('        package="' + ProjPackage + '">');
 
            FileLines.Add('  <application');
+
            FileLines.Add('      android:allowBackup="true"');
            FileLines.Add('      android:supportsRtl="true"/>');
 
            FileLines.Add('</manifest>');
 
-           FileLines.SaveToFile(ResDir + '\src\main\AndroidManifest.xml');
+           FileLines.SaveToFile(ResDir + '\app\src\main\AndroidManifest.xml');
 
            FileLines.DisposeOf;
            FileLines := TStringList.Create;
@@ -2003,27 +2081,6 @@ begin
 
            FileLines.SaveToFile(ResDir + '\gradle.properties');
 
-           if DirectoryExists(ProjDir + '\res')
-           then
-              TDirectory.Copy(ProjDir + '\res', ResDir + '\src\main\res');
-
-           FileLines.DisposeOf;
-           FileLines := TStringList.Create;
-           FileLines.Clear;
-
-           FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
-           FileLines.Add('cd "' + ResDir + '"');
-           FileLines.Add('Gradle wrapper');
-           FileLines.SaveToFile(TmpDir + '\Commands.bat');
-
-           if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
-           then
-              begin
-                 Errors := True;
-                 ShowMessage('There was an error running resource task. Please check Output');
-                 Exit;
-              end;
-
            TThread.Synchronize(TThread.CurrentThread,
            procedure
            begin
@@ -2043,6 +2100,7 @@ begin
            else
               FileLines.Add('Gradlew mergeReleaseResources');
 
+//           FileLines.Add('gradlew build');
            FileLines.SaveToFile(TmpDir + '\Commands.bat');
 
            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
@@ -2089,9 +2147,9 @@ begin
 
            if GetCurrentProject.CurrentConfiguration = 'Debug'
            then
-              TDirectory.Copy(ResDir + '\build\intermediates\incremental\debug\mergeDebugResources\merged.dir', MergResDir)
+              TDirectory.Copy(ResDir + '\app\build\intermediates\incremental\debug\mergeDebugResources\merged.dir', MergResDir)
            else
-              TDirectory.Copy(ResDir + '\build\intermediates\incremental\release\mergeReleaseResources\merged.dir', MergResDir);
+              TDirectory.Copy(ResDir + '\app\build\intermediates\incremental\release\mergeReleaseResources\merged.dir', MergResDir);
 
            DirList := TDirectory.GetDirectories(LibsDir + '\Resources', 'res', TSearchOption.soAllDirectories);
 
@@ -3016,7 +3074,10 @@ begin
 
                if DirectoryExists(ResDir)
                then
-                  DeleteDirectory(ResDir, False);
+                  begin
+                     DeleteDirectory(ProjDir + 'GradResapp', False);
+                     DeleteDirectory(ResDir, False);
+                  end;
 
             end;
 

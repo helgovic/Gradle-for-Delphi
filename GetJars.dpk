@@ -45,7 +45,6 @@ contains
   UGetJars in 'UGetJars.pas',
   UFGetJars in 'UFGetJars.pas' {FGetJars},
   UFAndroidManifest in 'UFAndroidManifest.pas' {FManifest},
-  MyZip in 'MyZip.pas',
   UFHistory in 'UFHistory.pas' {FHistory},
   UFSettings in 'UFSettings.pas' {FSettings},
   UFRepositories in 'UFRepositories.pas' {FRepositories};
