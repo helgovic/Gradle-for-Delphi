@@ -4,9 +4,11 @@ interface
 
 uses
   Windows, SysUtils, Classes, vcl.Menus, vcl.ActnList, ToolsAPI, vcl.ComCtrls, vcl.ExtCtrls, vcl.Graphics, vcl.Controls,
-  System.IOUtils, vcl.Dialogs, Threading, System.Win.Registry, Vcl.Forms;
+  System.IOUtils, vcl.Dialogs, Threading, System.Win.Registry, Vcl.Forms, vcl.VirtualImageList, Vcl.ImageCollection;
 
 type
+
+  TGraphicHack = class(TGraphic);
 
   TBADIToolsAPIFunctions = record
      Class Procedure RegisterFormClassForTheming(Const AFormClass : TCustomFormClass;
@@ -57,6 +59,137 @@ var
    FGetJarsExpert: TGetJarsExpert;
 //   IDENot: Integer;
 
+{$IFDEF VER360}
+{$ELSEIF VER350}
+{$ELSE}
+function AddIconToImageList(AIcon: TIcon; ImageList: TCustomImageList;
+  Stretch: Boolean): Integer;
+const
+  MaskColor = clBtnFace;
+var
+  SrcBmp, DstBmp: TBitmap;
+  PSrc1, PSrc2, PDst: PRGBArray;
+  X, Y: Integer;
+begin
+  Assert(Assigned(AIcon));
+  Assert(Assigned(ImageList));
+
+{$IFDEF DEBUG}
+  if not AIcon.Empty then
+    CnDebugger.LogFmt('AddIcon %dx%d To ImageList %dx%d', [AIcon.Width, AIcon.Height,
+      ImageList.Width, ImageList.Height]);
+{$ENDIF}
+
+  if (ImageList.Width = 16) and (ImageList.Height = 16) and not AIcon.Empty and
+    (AIcon.Width = 32) and (AIcon.Height = 32) then
+  begin
+    if Stretch then // ImageList 尺寸比图标大，指定拉伸的情况下，使用平滑处理
+    begin
+      SrcBmp := nil;
+      DstBmp := nil;
+      try
+        SrcBmp := CreateEmptyBmp24(32, 32, MaskColor);
+        DstBmp := CreateEmptyBmp24(16, 16, MaskColor);
+        SrcBmp.Canvas.Draw(0, 0, AIcon);
+        for Y := 0 to DstBmp.Height - 1 do
+        begin
+          PSrc1 := SrcBmp.ScanLine[Y * 2];
+          PSrc2 := SrcBmp.ScanLine[Y * 2 + 1];
+          PDst := DstBmp.ScanLine[Y];
+          for X := 0 to DstBmp.Width - 1 do
+          begin
+            PDst^[X].b := (PSrc1^[X * 2].b + PSrc1^[X * 2 + 1].b + PSrc2^[X * 2].b
+              + PSrc2^[X * 2 + 1].b) shr 2;
+            PDst^[X].g := (PSrc1^[X * 2].g + PSrc1^[X * 2 + 1].g + PSrc2^[X * 2].g
+              + PSrc2^[X * 2 + 1].g) shr 2;
+            PDst^[X].r := (PSrc1^[X * 2].r + PSrc1^[X * 2 + 1].r + PSrc2^[X * 2].r
+              + PSrc2^[X * 2 + 1].r) shr 2;
+          end;
+        end;
+        Result := ImageList.AddMasked(DstBmp, MaskColor);
+      finally
+        if Assigned(SrcBmp) then FreeAndNil(SrcBmp);
+        if Assigned(DstBmp) then FreeAndNil(DstBmp);
+      end;
+    end
+    else
+    begin
+      // 指定不拉伸的情况下，把 32*32 图标的左上角 16*16 部分绘制来加入
+      DstBmp := nil;
+      try
+        DstBmp := CreateEmptyBmp24(16, 16, MaskColor);
+        DstBmp.Canvas.Draw(0, 0, AIcon);
+        Result := ImageList.AddMasked(DstBmp, MaskColor);
+      finally
+        DstBmp.Free;
+      end;
+    end;
+  end
+  else if not AIcon.Empty then
+    Result := ImageList.AddIcon(AIcon)
+  else
+    Result := -1;
+end;
+
+{$ENDIF}
+
+function AddGraphicToVirtualImageList(Graphic: TGraphic; DstVirtual: TVirtualImageList;
+  const ANamePrefix: string; Disabled: Boolean): Integer;
+var
+  C: Integer;
+  R: TRect;
+  Bmp: TBitmap;
+  Mem: TMemoryStream;
+  Collection: TImageCollection;
+begin
+  Result := -1;
+  if (Graphic = nil) or (DstVirtual = nil) then
+    Exit;
+
+  if DstVirtual.ImageCollection is TImageCollection then
+    Collection := DstVirtual.ImageCollection as TImageCollection
+  else
+    Exit;
+
+  C := Collection.Count;
+  Mem := TMemoryStream.Create;
+  try
+    if Graphic is TIcon then // 是 Icon 则直接存避免丢失透明度
+    begin
+      Mem.Clear;
+      (Graphic as TIcon).SaveToStream(Mem);
+    end
+    else if Graphic is TBitmap then
+    begin
+      Mem.Clear;
+      (Graphic as TBitmap).SaveToStream(Mem);
+    end
+    else
+    begin
+      Bmp := TBitmap.Create;
+      try
+        Bmp.PixelFormat := pf32bit;
+        Bmp.AlphaFormat := afIgnored;
+        Bmp.Width := Graphic.Width;
+        Bmp.Height := Graphic.Height;
+        R := Rect(0, 0, Bmp.Width, Bmp.Height);
+        TGraphicHack(Graphic).Draw(Bmp.Canvas, R);
+
+        Mem.Clear;
+        Bmp.SaveToStream(Mem);
+      finally
+        Bmp.Free;
+      end;
+    end;
+    Collection.Add(ANamePrefix + IntToStr(C), Mem);
+  finally
+    Mem.Free;
+  end;
+
+  DstVirtual.Add('', C, C, Disabled);
+  Result := DstVirtual.Count - 1;
+end;
+
 function FindMenuItem(MenuCaptions: String): TMenuItem;
 
 var
@@ -105,14 +238,14 @@ begin
                if not Found
                then
                   begin
-                     Captions.DisposeOf;
+                     Captions.Free;
                      Exit;
                   end;
 
             end;
 
          Result := MenuItems;
-         Captions.DisposeOf;
+         Captions.Free;
 
       end;
 
@@ -152,7 +285,7 @@ begin
    then
       begin
 
-         FProjectMenu := FindMenuItem('Project;QA Audits...');
+         FProjectMenu := FindMenuItem('Project');
 
          Bmp := TBitmap.Create;
 
@@ -171,16 +304,22 @@ begin
          FMenuGetJars.AutoHotkeys := maAutomatic;
          FMenuGetJars.Action := FActionGetJars;
 
-         NTAServices.AddActionMenu(FProjectMenu.Name, FActionGetJars, FMenuGetJars, True);
+         NTAServices.AddActionMenu(FProjectMenu.Name, FActionGetJars, FMenuGetJars, False, True);
 
          Bmp.LoadFromResourceName(HInstance, 'AndroidBmp');
-         ImageIndex := NTAServices.AddMasked(Bmp, clNone,
-                                  'Android icon');
+
+         {$IFDEF VER360}
+             ImageIndex := AddGraphicToVirtualImageList(bmp, NTAServices.ImageList as TVirtualImageList, '', False);
+         {$ELSEIF VER350}
+             ImageIndex := AddGraphicToVirtualImageList(bmp, NTAServices.ImageList as TVirtualImageList, '', False);
+         {$ELSE}
+             ImageIndex := AddIconToImageList(AWizAction.FIcon, Svcs40.ImageList, False);
+         {$ENDIF}
 
          FActionGetJars.ImageIndex := ImageIndex;
          FMenuGetJars.ImageIndex := ImageIndex;
 
-         Bmp.DisposeOf;
+         Bmp.Free;
 
          FGetJars := TFGetJars.Create(nil);
          FManifest := TFManifest.Create(nil);
@@ -268,13 +407,13 @@ begin
 
    FGetJars.FDCJobs.Connected := False;
 //
-   FMenuGetJars.DisposeOf;
-   FActionGetJars.DisposeOf;
-   FManifest.DisposeOf;
-   FRepositories.DisposeOf;
-   FHistory.DisposeOf;
-   FGetJars.DisposeOf;
-   FSettings.DisposeOf;
+   FMenuGetJars.Free;
+   FActionGetJars.Free;
+   FManifest.Free;
+   FRepositories.Free;
+   FHistory.Free;
+   FGetJars.Free;
+   FSettings.Free;
 
    inherited Destroy;
 
