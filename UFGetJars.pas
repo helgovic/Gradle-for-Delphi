@@ -1014,7 +1014,7 @@ begin
                  for i := 0 to SLReposit.Count - 1 do
                     FileLines.Add('        ' + SLReposit[i]);
 
-                 SLReposit.DisposeOf;
+                 SLReposit.Free;
 
               end;
 
@@ -1147,7 +1147,7 @@ begin
                  SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
               end);
 
-              FileLines.DisposeOf;
+              FileLines.Free;
               FileLines := TStringList.Create;
               FileLines.Clear;
 
@@ -1239,7 +1239,7 @@ begin
 
                  end;
 
-              CopyFiles.DisposeOf;
+              CopyFiles.Free;
 
               FileList := nil;
               FileList := TDirectory.GetFiles(LibsDir, '*.aar', TSearchOption.soTopDirectoryOnly);
@@ -1389,7 +1389,7 @@ begin
               for i := 0 to High(FileList) do
                  DeleteFile(FileList[i]);
 
-              FileLines.DisposeOf;
+              FileLines.Free;
               FileLines := TStringList.Create;
 
               FileLines.Add(ExtractFileDrive(LibsDir));
@@ -1466,7 +1466,7 @@ begin
 
                           end;
 
-                       FileLines.DisposeOf;
+                       FileLines.Free;
                        FileLines := TStringList.Create;
 
                        FileLines.Add('repositories {');
@@ -1483,7 +1483,7 @@ begin
                              for x := 0 to SLReposit.Count - 1 do
                                 FileLines.Add('        ' + SLReposit[x]);
 
-                             SLReposit.DisposeOf;
+                             SLReposit.Free;
 
                           end;
 
@@ -1566,7 +1566,7 @@ begin
 
                        FileLines.SaveToFile(TmpDir + '\Build.gradle');
 
-                       FileLines.DisposeOf;
+                       FileLines.Free;
                        FileLines := TStringList.Create;
 
                        FileLines.Add(ExtractFileDrive(GetCurrentProjectFileName));
@@ -1582,7 +1582,7 @@ begin
                              Exit;
                           end;
 
-                       FileLines.DisposeOf;
+                       FileLines.Free;
                        FileLines := TStringList.Create;
                        FileLines.Clear;
 
@@ -1650,7 +1650,7 @@ begin
             ProjFileLinesIn := TStringList.Create;
             ProjFileLinesOut := TStringList.Create;
 
-            FileLines.DisposeOf;
+            FileLines.Free;
             FileLines := TStringList.Create;
             FileLines.LoadFromFile(ExtractFilePath(GetCurrentProjectFileName) + 'AndroidManifest.template.xml');
 
@@ -1660,8 +1660,8 @@ begin
 
            PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
            AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
-           AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
-           BuildToolsVer := StrBefore('\', StrAfter('build-tools\', AndroidSDK.SDKAaptPath));
+//           AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
+//           BuildToolsVer := StrBefore('\', StrAfter('build-tools\', AndroidSDK.SDKAaptPath));
            SDKApiLevelPath := '"' + AndroidSDK.SDKApiLevel + '\Android.jar"';
            JDKPath := AndroidSDK.JDKPath;
 
@@ -1677,7 +1677,7 @@ begin
 
             if StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i])) = '%targetSdkVersion%'
             then
-               TargetSDK := '34'
+               TargetSDK := '35'
             else
                TargetSDK := StrBefore('" />', StrAfter('android:targetSdkVersion="', FileLines[i]));
 
@@ -1734,7 +1734,7 @@ begin
 
                end;
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -1750,7 +1750,7 @@ begin
            then
               TDirectory.Copy(ProjDir + '\res', ResDir + '\app\src\main\res');
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -1769,7 +1769,7 @@ begin
 
            FileLines.SaveToFile(ResDir + '\settings.gradle');
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -1786,7 +1786,7 @@ begin
                  Exit;
               end;
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -1798,7 +1798,7 @@ begin
 
            FileLines.SaveToFile(ResDir + '\build.gradle');
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -1809,7 +1809,7 @@ begin
            FileLines.Add('android {');
            FileLines.Add('    namespace ''' + ProjPackage + '''');
            FileLines.Add('    compileSdkVersion ' + TargetSDK);
-           FileLines.Add('    buildToolsVersion "' + BuildToolsVer + '"');
+//           FileLines.Add('    buildToolsVersion "' + BuildToolsVer + '"');
            FileLines.Add('');
            FileLines.Add('    defaultConfig {');
            FileLines.Add('        applicationId "' + ProjPackage + '"');
@@ -1880,7 +1880,7 @@ begin
                  for x := 0 to SLReposit.Count - 1 do
                     FileLines.Add('        ' + SLReposit[x]);
 
-                 SLReposit.DisposeOf;
+                 SLReposit.Free;
 
               end;
 
@@ -1992,59 +1992,12 @@ begin
 
            FileLines.SaveToFile(ResDir + '\app\Build.Gradle');
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
            FileLines.Add('<?xml version="1.0" encoding="utf-8"?>');
-           FileLines.Add('<manifest xmlns:android="http://schemas.android.com/apk/res/android"');
-
-            if not ProjFound
-            then
-               for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
-               begin
-
-                 if ProjectOptionsConfigurations.Configurations[x].Name = 'Base'
-                 then
-                    begin
-
-                       if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
-                       then
-                          begin
-
-                             for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
-                                begin
-
-                                   if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
-                                   then
-                                      begin
-
-                                         TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
-
-                                         if Pos('$(MSBuildProjectName)', TmpStr) > 0
-                                         then
-                                            TmpStr := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                                         if Pos('$(ModuleName)', TmpStr) > 0
-                                         then
-                                            TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
-
-                                         FileLines.Add('        package="' + TmpStr + '">');
-
-                                         Break;
-
-                                      end;
-
-                                end;
-
-                          end;
-
-                       Break;
-
-                    end;
-               end
-            else
-               FileLines.Add('        package="' + ProjPackage + '">');
+           FileLines.Add('<manifest xmlns:android="http://schemas.android.com/apk/res/android">');
 
            FileLines.Add('  <application');
 
@@ -2055,14 +2008,14 @@ begin
 
            FileLines.SaveToFile(ResDir + '\app\src\main\AndroidManifest.xml');
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
            FileLines.Add('sdk.dir=' + StringReplace(StrBefore('\platforms', AndroidSDK.SDKApiLevel), '\', '\\', [rfReplaceAll]));
            FileLines.SaveToFile(ResDir + '\local.properties');
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -2087,7 +2040,7 @@ begin
               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
            end);
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -2100,7 +2053,6 @@ begin
            else
               FileLines.Add('Gradlew mergeReleaseResources');
 
-//           FileLines.Add('gradlew build');
            FileLines.SaveToFile(TmpDir + '\Commands.bat');
 
            if Execute(TmpDir + '\Commands.bat', ExecOut) <> 0
@@ -2116,7 +2068,7 @@ begin
               SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
            end);
 
-           FileLines.DisposeOf;
+           FileLines.Free;
            FileLines := TStringList.Create;
            FileLines.Clear;
 
@@ -2213,7 +2165,7 @@ begin
                              Exit;
                           end;
 
-                       FileLines.DisposeOf;
+                       FileLines.Free;
                        FileLines := TStringList.Create;
                        FileLines.Clear;
 
@@ -2244,7 +2196,7 @@ begin
                        FileLines.Text := StringReplace(FileLines.Text, '${applicationId}', ProjPackage, [rfReplaceAll]);
                        FileLines.SaveToFile(StrLeft(DirList[x], StrILastPos('\', DirList[x])) + 'AndroidManifest.xml');
 
-                       FileLines.DisposeOf;
+                       FileLines.Free;
                        FileLines := TStringList.Create;
                        FileLines.Clear;
 
@@ -2291,7 +2243,7 @@ begin
                        then
                           begin
 
-                             FileLines.DisposeOf;
+                             FileLines.Free;
                              FileLines := TStringList.Create;
                              FileLines.Clear;
 
@@ -2328,7 +2280,7 @@ begin
            then
               begin
 
-                 FileLines.DisposeOf;
+                 FileLines.Free;
                  FileLines := TStringList.Create;
                  FileLines.Clear;
 
@@ -2621,8 +2573,8 @@ begin
 
            end);
 
-           ProjFileLinesIn.DisposeOf;
-           ProjFileLinesOut.DisposeOf;
+           ProjFileLinesIn.Free;
+           ProjFileLinesOut.Free;
 
            FileList := nil;
            FileList := TDirectory.GetFiles(LibsDir, '*.xml', TSearchOption.soAllDirectories);
@@ -2686,7 +2638,7 @@ begin
                        SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                     end);
 
-                 ManifestLines.DisposeOf;
+                 ManifestLines.Free;
                  ManifestLines := TStringList.Create;
                  ManifestLines.LoadFromFile(FileList[x]);
 
@@ -2726,7 +2678,7 @@ begin
 
               end;
 
-           ManifestLines.DisposeOf;
+           ManifestLines.Free;
 
            if FManifest.MAndrMan.Lines.Count > 0
            then
@@ -2742,7 +2694,7 @@ begin
                  then
                     begin
 
-                       FileLines.DisposeOf;
+                       FileLines.Free;
                        FileLines := TStringList.Create;
                        FileLines.LoadFromFile(ProjDir + 'AndroidManifest.template.xml');
 
@@ -3099,10 +3051,10 @@ begin
          BDelete.Enabled := True;
          BCompileAll.Enabled := True;
          BHistory.Enabled := True;
-         SLJars.DisposeOf;
-         SLAddJars.DisposeOf;
-         CopyFiles.DisposeOf;
-         FileLines.DisposeOf;
+         SLJars.Free;
+         SLAddJars.Free;
+         CopyFiles.Free;
+         FileLines.Free;
 
       end;
 
@@ -3298,7 +3250,7 @@ begin
                     for x := 0 to SLReposit.Count - 1 do
                        FileLines.Add('        ' + SLReposit[x]);
 
-                    SLReposit.DisposeOf;
+                    SLReposit.Free;
 
                  end;
 
@@ -3365,7 +3317,7 @@ begin
                   SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                end);
 
-               FileLines.DisposeOf;
+               FileLines.Free;
                FileLines := TStringList.Create;
                FileLines.Clear;
 
@@ -3568,7 +3520,7 @@ begin
                for i := 0 to High(FileList) do
                   DeleteFile(FileList[i]);
 
-               FileLines.DisposeOf;
+               FileLines.Free;
                FileLines := TStringList.Create;
 
                for i := 0 to MExclJars.Lines.Count - 1 do
@@ -3626,7 +3578,7 @@ begin
 
                MoveFile(PChar(LibsDir + '\ExtractedClasses\AndroidApi.JNI.' + LEJobName.Text + '.jar'), PChar(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.jar'));
 
-               FileLines.DisposeOf;
+               FileLines.Free;
                FileLines := TStringList.Create;
                FileLines.Clear;
 
@@ -3660,7 +3612,7 @@ begin
                DeleteFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
                MoveFile(PChar(ConverterPath + '\AndroidApi.JNI.' + LEJobName.Text + '.pas'), PChar(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas'));
 
-               FileLines.DisposeOf;
+               FileLines.Free;
                FileLines := TStringList.Create;
                FileLines.LoadFromFile(ProjDir + 'AndroidApi.JNI.' + LEJobName.Text + '.pas');
 
@@ -3776,7 +3728,7 @@ begin
                   DeleteDirectory(LibsDir, False);
 
             finally
-               FileLines.DisposeOf;
+               FileLines.Free;
             end;
 
          finally
@@ -3815,3 +3767,4 @@ begin
 end;
 
 end.
+
