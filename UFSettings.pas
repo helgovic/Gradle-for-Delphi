@@ -23,6 +23,8 @@ type
     Label2: TLabel;
     Label3: TLabel;
     BEJDKHome: TButtonedEdit;
+    Label4: TLabel;
+    BEBuildToolsPath: TButtonedEdit;
     procedure BEJ2OPathRightButtonClick(Sender: TObject);
     procedure BEJIPathRightButtonClick(Sender: TObject);
     procedure BOKClick(Sender: TObject);
@@ -144,11 +146,28 @@ begin
          Exit;
       end;
 
+   if BEBuildToolsPath.Text = ''
+   then
+      begin
+         ShowMessage('Please enter path to Build Tools');
+         BEBuildToolsPath.SetFocus;
+         Exit;
+      end;
+
+   if not DirectoryExists(BEBuildToolsPath.Text)
+   then
+      begin
+         ShowMessage('Directory ' + BEBuildToolsPath.Text + ' does not exist');
+         BEBuildToolsPath.SetFocus;
+         Exit;
+      end;
+
    with TRegIniFile.Create(REG_KEY) do
    try
       WriteString(REG_BUILD_OPTIONS, 'Java2op Location', BEJ2OPath.Text);
       WriteString(REG_BUILD_OPTIONS, 'JavaImport Location', BEJIPath.Text);
       WriteString(REG_BUILD_OPTIONS, 'JDK Location', BEJDKHome.Text);
+      WriteString(REG_BUILD_OPTIONS, 'Build Tools Location', BEBuildToolsPath.Text);
       WriteBool(REG_BUILD_OPTIONS, 'Java2OP', RBJava2OP.Checked);
    finally
       Free;

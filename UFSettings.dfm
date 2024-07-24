@@ -20,6 +20,13 @@ object FSettings: TFSettings
     Height = 15
     Caption = 'Path to JDK home'
   end
+  object Label4: TLabel
+    Left = 17
+    Top = 213
+    Width = 97
+    Height = 15
+    Caption = 'Path to build tools'
+  end
   object Panel1: TPanel
     Left = 0
     Top = 318
@@ -27,9 +34,7 @@ object FSettings: TFSettings
     Height = 75
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 2
-    ExplicitTop = 306
-    ExplicitWidth = 584
+    TabOrder = 3
     object BOK: TButton
       Left = 193
       Top = 13
@@ -138,6 +143,19 @@ object FSettings: TFSettings
     RightButton.ImageIndex = 0
     RightButton.Visible = True
     TabOrder = 1
+    OnRightButtonClick = BEJDKHomeRightButtonClick
+  end
+  object BEBuildToolsPath: TButtonedEdit
+    Left = 16
+    Top = 232
+    Width = 575
+    Height = 23
+    AutoSelect = False
+    Images = ImageList1
+    LeftButton.ImageIndex = 1
+    RightButton.ImageIndex = 0
+    RightButton.Visible = True
+    TabOrder = 2
     OnRightButtonClick = BEJDKHomeRightButtonClick
   end
   object FileOpenDialog: TFileOpenDialog

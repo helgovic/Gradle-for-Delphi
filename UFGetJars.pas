@@ -551,6 +551,7 @@ begin
    try
       FSettings.BEJ2OPath.Text := ReadString(REG_BUILD_OPTIONS, 'Java2op Location', '');
       FSettings.BEJIPath.Text := ReadString(REG_BUILD_OPTIONS, 'JavaImport Location', '');
+      FSettings.BEBuildToolsPath.Text := ReadString(REG_BUILD_OPTIONS, 'Build Tools Location', '');
       FSettings.RBJava2OP.Checked := ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
       FSettings.RbJavaImport.Checked := not ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
       FSettings.BEJDKHome.Text := ReadString(REG_BUILD_OPTIONS, 'JDK Location', '');
@@ -783,7 +784,7 @@ begin
       AaptPath: string;
       JDKPath: string;
       SDKApiLevelPath: string;
-      BuildToolsVer: string;
+//      BuildToolsVer: string;
       PackName: string;
       MinSDK, TargetSDK: String;
       Errors: Boolean;
@@ -796,51 +797,58 @@ begin
 
    begin
 
-      with TRegIniFile.Create(REG_KEY) do
       try
 
-         if ReadString(REG_BUILD_OPTIONS, 'JDK Location', '') = ''
+         with TRegIniFile.Create(REG_KEY) do
+         try
+
+            if ReadString(REG_BUILD_OPTIONS, 'JDK Location', '') = ''
+            then
+              begin
+                 ShowMessage('Please enter JDK home path, in MainMenu->Settings');
+                 Exit;
+              end;
+
+            if ReadString(REG_BUILD_OPTIONS, 'Build Tools Location', '') = ''
+            then
+              begin
+                 ShowMessage('Please enter Build Tools location, in MainMenu->Settings');
+                 Exit;
+              end;
+
+         finally
+            Free;
+         end;
+
+         if not DirectoryExists(ExtractFilePath(GetCurrentProjectFileName) + 'Archive')
+         then
+            if not CreateDir(ExtractFilePath(GetCurrentProjectFileName) + 'Archive')
+            then
+              begin
+                 ShowMessage('There was an error creating Archive Folder');
+                 Exit;
+              end;
+
+         SavedFile := ExtractFilePath(GetCurrentProjectFileName) + 'Archive\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + 'GJ' + FormatDateTime('yyyymmddhhnnss', Now) + '.dproj';
+
+         if not CopyFile(PChar(GetCurrentProjectFileName), PChar(SavedFile), False)
          then
            begin
-              ShowMessage('Please enter JDK home path, in MainMenu->Settings');
+              ShowMessage('There was an error making a backup of the projectfile');
               Exit;
            end;
 
-      finally
-         Free;
-      end;
+         MStatus.Lines.Text := '';
+         LStatus.Font.Color := clGreen;
 
-      if not DirectoryExists(ExtractFilePath(GetCurrentProjectFileName) + 'Archive')
-      then
-         if not CreateDir(ExtractFilePath(GetCurrentProjectFileName) + 'Archive')
-         then
-           begin
-              ShowMessage('There was an error creating Archive Folder');
-              Exit;
-           end;
+         Errors := False;
 
-      SavedFile := ExtractFilePath(GetCurrentProjectFileName) + 'Archive\' + StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)) + 'GJ' + FormatDateTime('yyyymmddhhnnss', Now) + '.dproj';
+         FileLines := TStringList.Create;
 
-      if not CopyFile(PChar(GetCurrentProjectFileName), PChar(SavedFile), False)
-      then
-        begin
-           ShowMessage('There was an error making a backup of the projectfile');
-           Exit;
-        end;
-
-      MStatus.Lines.Text := '';
-      LStatus.Font.Color := clGreen;
-
-      Errors := False;
-
-      FileLines := TStringList.Create;
-
-      SLJobs := TStringList.Create;
-      SLJars := TStringList.Create;
-      SLAddJars := TStringList.Create;
-      SLExclJars := TStringList.Create;
-
-      try
+         SLJobs := TStringList.Create;
+         SLJars := TStringList.Create;
+         SLAddJars := TStringList.Create;
+         SLExclJars := TStringList.Create;
 
          try
 
@@ -1658,9 +1666,18 @@ begin
             then
                DeleteFile(ProjDir + 'Libs\R.jar');
 
-           PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
-           AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
-//           AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
+            PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
+            AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
+
+            with TRegIniFile.Create(REG_KEY) do
+            try
+
+               AaptPath := '"' + ReadString(REG_BUILD_OPTIONS, 'Build Tools Location', '') + '\aapt.exe"';
+
+            finally
+               Free;
+            end;
+
 //           BuildToolsVer := StrBefore('\', StrAfter('build-tools\', AndroidSDK.SDKAaptPath));
            SDKApiLevelPath := '"' + AndroidSDK.SDKApiLevel + '\Android.jar"';
            JDKPath := AndroidSDK.JDKPath;
