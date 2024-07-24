@@ -1734,7 +1734,48 @@ begin
                                                then
                                                   ProjPackage := StringReplace(ProjPackage, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);;
 
-                                               FileLines.Add('        package="' + ProjPackage + '">');
+                                               Break;
+
+                                            end;
+
+                                      end;
+
+                                end;
+
+                             Break;
+
+                          end;
+                     end;
+
+                  if not ProjFound
+                  then
+                     for x := 0 to ProjectOptionsConfigurations.ConfigurationCount - 1 do
+                     begin
+
+                       if ProjectOptionsConfigurations.Configurations[x].Name = 'Base'
+                       then
+                          begin
+
+                             if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform] <> nil
+                             then
+                                begin
+
+                                   for y := 0 to ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].PropertyCount - 1 do
+                                      begin
+
+                                         if ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y] = 'VerInfo_Keys'
+                                         then
+                                            begin
+
+                                               TmpStr := StrBefore(';', StrAfter('package=', ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].GetValue(ProjectOptionsConfigurations.Configurations[x].PlatformConfiguration[GetCurrentProject.CurrentPlatform].Properties[y], True)));
+
+                                               if Pos('$(MSBuildProjectName)', TmpStr) > 0
+                                               then
+                                                  ProjPackage := StringReplace(TmpStr, '$(MSBuildProjectName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
+
+                                               if Pos('$(ModuleName)', TmpStr) > 0
+                                               then
+                                                  ProjPackage := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
 
                                                Break;
 
