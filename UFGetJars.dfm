@@ -422,7 +422,9 @@ object FGetJars: TFGetJars
   object FDCJobs: TFDConnection
     Params.Strings = (
       'DriverID=SQLite'
-      'Database=D:\Downloads\XE11\GetJars\Gradle.db')
+      'Database=D:\Deplhi\CloudPlayerNew\CloudPlayerGJ.db')
+    ResourceOptions.AssignedValues = [rvBackup]
+    ResourceOptions.Backup = True
     LoginPrompt = False
     Left = 75
     Top = 75
@@ -430,21 +432,24 @@ object FGetJars: TFGetJars
   object QGetJobs: TFDQuery
     Connection = FDCJobs
     SQL.Strings = (
-      'Select'
+      'Select '
       '  h.SaveDate,'
       '  h.Dependencies,'
       '  h.AddDependencies,'
       '  h.ExclJNI,'
       '  h.ExclFinal,'
-      '  h.InclRes'
+      '  h.InclRes,'
+      '  h.'#39'Active'#39' As FIELD_1,'
+      '  h.JobID,'
+      '  h.Active'
       'From'
       '  History h,'
       '  Jobs j'
       'Where'
-      '  h.JobID = j.ID And'
-      '  (j.JobName = :JobName)'
+      '  h.JobID = j.ID and '
+      '  j.JobName = :JobName'
       'Order By'
-      '  1 Desc')
+      '  1 DESC')
     Left = 481
     Top = 133
     ParamData = <
@@ -667,6 +672,14 @@ object FGetJars: TFGetJars
     object MISettings: TMenuItem
       Caption = 'Settings'
       OnClick = MISettingsClick
+    end
+    object MIBackUp: TMenuItem
+      Caption = 'Export/BackUp Settings'
+      OnClick = MIBackUpClick
+    end
+    object MIRestore: TMenuItem
+      Caption = 'Restore/Import Settings'
+      OnClick = MIRestoreClick
     end
   end
   object QDefRepositoriesNew: TFDQuery

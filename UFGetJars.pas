@@ -55,6 +55,8 @@ type
     MISettings: TMenuItem;
     QDefRepositoriesNew: TFDQuery;
     TSActive: TToggleSwitch;
+    MIBackUp: TMenuItem;
+    MIRestore: TMenuItem;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -67,6 +69,8 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
     procedure MISettingsClick(Sender: TObject);
+    procedure MIBackUpClick(Sender: TObject);
+    procedure MIRestoreClick(Sender: TObject);
   private
     procedure ExecOut(const Text: string);
     procedure LoadJob(JobNam: String);
@@ -92,7 +96,7 @@ function MemoStrToIniStr(InStr: string): string;
 implementation
 
 uses
-   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs, UFSettings;
+   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs, UFSettings, UFBackUp, UFRestore;
 
 {$R *.dfm}
 
@@ -279,12 +283,8 @@ end;
 procedure TFGetJars.Button1Click(Sender: TObject);
 
 var
-   PlatformSDKServices: IOTAPlatformSDKServices;
-   AndroidSDK: IOTAPlatformSDKAndroid;
-   AaptPath: string;
-   BuildToolsVer: string;
    ProjectOptionsConfigurations: IOTAProjectOptionsConfigurations;
-   x, i, y: integer;
+   x, y: integer;
    TmpStr: String;
    Found: Boolean;
 
@@ -332,7 +332,6 @@ begin
                                          TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
 
                                       ShowMessage(TmpStr);
-            //                                   FileLines.Add('        package="' + TmpStr + '">')
 
                                       Break;
 
@@ -383,7 +382,6 @@ begin
                                          TmpStr := StringReplace(TmpStr, '$(ModuleName)', StrBefore('.dproj', ExtractFileName(GetCurrentProjectFileName)), []);
 
                                       ShowMessage(TmpStr);
-            //                                   FileLines.Add('        package="' + TmpStr + '">')
 
                                       Break;
 
@@ -399,11 +397,7 @@ begin
             end;
 
       end;
-//  PlatformSDKServices := (BorlandIDEServices as IOTAPlatformSDKServices);
-//  AndroidSDK := PlatformSDKServices.GetDefaultForPlatform('Android') as IOTAPlatformSDKAndroid;
-//  AaptPath := '"' + AndroidSDK.SDKAaptPath + '"';
-//  BuildToolsVer := StrRestOf(ExtractFileDir(AaptPath), StrLastPos('\', ExtractFileDir(AaptPath)) + 1);
-//  ShowMessage(BuildToolsVer);
+
 end;
 
 procedure TFGetJars.CBProjJobsSelect(Sender: TObject);
@@ -541,6 +535,25 @@ begin
       end;
 
   Result := True;
+
+end;
+
+procedure TFGetJars.MIBackUpClick(Sender: TObject);
+begin
+
+   FBackUp.BEBackUpFile.Text := '';
+   FBackUp.LStatus.Caption := '';
+   FBackUp.ShowModal;
+
+end;
+
+procedure TFGetJars.MIRestoreClick(Sender: TObject);
+begin
+
+   FRestore.BERestoreFile.Text := '';
+   FRestore.LRestoreStatus.Caption := '';
+   FRestore.LBJobs.Clear;
+   FRestore.ShowModal;
 
 end;
 

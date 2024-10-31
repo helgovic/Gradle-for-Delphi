@@ -39,7 +39,10 @@ requires
   FireDACCommon,
   vclFireDAC,
   FireDACSqliteDriver,
-  inet;
+  inet,
+  FireDACIBDriver,
+  bindcomp,
+  bindcompvcl;
 
 contains
   UGetJars in 'UGetJars.pas',
@@ -47,7 +50,9 @@ contains
   UFAndroidManifest in 'UFAndroidManifest.pas' {FManifest},
   UFHistory in 'UFHistory.pas' {FHistory},
   UFSettings in 'UFSettings.pas' {FSettings},
-  UFRepositories in 'UFRepositories.pas' {FRepositories};
+  UFRepositories in 'UFRepositories.pas' {FRepositories},
+  UFBackUp in 'UFBackUp.pas' {FBackUp},
+  UFRestore in 'UFRestore.pas' {FRestore};
 
 end.
 
