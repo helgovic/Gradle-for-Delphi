@@ -1092,42 +1092,6 @@ begin
                        then
                           Continue;
 
-                       ExcludeFile := False;
-
-                       for z := 0 to SLJobs.Count - 1 do
-                          begin
-
-                             QGetCurrJob.Close;
-                             QGetCurrJob.ParamByName('JobName').AsString := SLJobs[z];
-                             QGetCurrJob.Open;
-
-                             SLExclJars.Text := QGetCurrJob.FieldByName('ExclFinal').AsString;
-
-                             for y := 0 to SLExclJars.count - 1 do
-                                begin
-
-                                   if not RemoveComm(SLExclJars[y], TmpStr2)
-                                   then
-                                      Continue;
-
-                                   if (TmpStr2[1] <> '/') and
-                                      (TmpStr2[1] <> '¤')
-                                   then
-                                      if Pos(AnsiLowerCase(TmpStr2), AnsiLowerCase(FileList[x])) > 0
-                                      then
-                                         begin
-                                            ExcludeFile := True;
-                                            Break;
-                                         end;
-
-                                end;
-
-                          end;
-
-                       if ExcludeFile
-                       then
-                          Continue;
-
                        FileLines.Add('    myConfig ' + TmpStr);
 
                     end;
@@ -1185,13 +1149,13 @@ begin
                     Exit;
                  end;
 
-              TThread.Synchronize(TThread.CurrentThread,
-              procedure
-              begin
-                 MStatus.Lines.Add('');
-                 LStatus.Caption := 'Copying Additional Dependencies';
-                 SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-              end);
+           TThread.Synchronize(TThread.CurrentThread,
+           procedure
+           begin
+              MStatus.Lines.Add('');
+              LStatus.Caption := 'Copying Additional Dependencies';
+              SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+           end);
 
            CopyFiles := TStringList.Create;
 
@@ -1272,39 +1236,83 @@ begin
               LStatus.Caption := 'Extracting libraries.';
 
               for x := 0 to High(FileList) do
-                 if zipFile.IsValid(FileList[x])
-                 then
-                    begin
+                 begin
 
-                       TThread.Synchronize(TThread.CurrentThread,
-                       procedure
+                    ExcludeFile := False;
+
+                    for z := 0 to SLJobs.Count - 1 do
                        begin
-                          MStatus.Lines.Add('Extracting: ' + FileList[x]);
-                          MStatus.Lines.Add('');
-                          SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-                       end);
 
-                       try
-                          zipFile.Open(FileList[x], zmRead);
-                          zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
-                       except
+                          QGetCurrJob.Close;
+                          QGetCurrJob.ParamByName('JobName').AsString := SLJobs[z];
+                          QGetCurrJob.Open;
 
-                           on E: Exception do
-                              begin
-                                 Errors := True;
-                                 ShowMessage(E.Message);
-                                 Exit;
-                              end;
+                          SLExclJars.Text := QGetCurrJob.FieldByName('ExclFinal').AsString;
+
+                          for y := 0 to SLExclJars.count - 1 do
+                             begin
+
+                                if not RemoveComm(SLExclJars[y], TmpStr2)
+                                then
+                                   Continue;
+
+                                if (TmpStr2[1] <> '/') and
+                                   (TmpStr2[1] <> '¤')
+                                then
+                                   if Pos(AnsiLowerCase(TmpStr2), AnsiLowerCase(FileList[x])) > 0
+                                   then
+                                      begin
+                                         ExcludeFile := True;
+                                         Break;
+                                      end;
+
+                             end;
+
+                          if ExcludeFile
+                          then
+                             Break;
 
                        end;
 
-                       TThread.Synchronize(TThread.CurrentThread,
-                       procedure
-                       begin
-                          ASPB.Position := x + 1;
-                       end);
+                    if ExcludeFile
+                    then
+                       Continue;
 
-                    end;
+                    if zipFile.IsValid(FileList[x])
+                    then
+                       begin
+
+                          TThread.Synchronize(TThread.CurrentThread,
+                          procedure
+                          begin
+                             MStatus.Lines.Add('Extracting: ' + FileList[x]);
+                             MStatus.Lines.Add('');
+                             SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+                          end);
+
+                          try
+                             zipFile.Open(FileList[x], zmRead);
+                             zipFile.ExtractAll(LibsDir + '\' + StrBefore(ExtractFileExt(FileList[x]), ExtractFileName(FileList[x])));
+                          except
+
+                              on E: Exception do
+                                 begin
+                                    Errors := True;
+                                    ShowMessage(E.Message);
+                                    Exit;
+                                 end;
+
+                          end;
+
+                          TThread.Synchronize(TThread.CurrentThread,
+                          procedure
+                          begin
+                             ASPB.Position := x + 1;
+                          end);
+
+                       end;
+
+                 end;
 
               FileList := nil;
               FileList := TDirectory.GetFiles(LibsDir, '*.jar', TSearchOption.soAllDirectories);
@@ -1321,6 +1329,46 @@ begin
                        MStatus.Lines.Add('');
                        SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                     end);
+
+                    ExcludeFile := False;
+
+                    for z := 0 to SLJobs.Count - 1 do
+                       begin
+
+                          QGetCurrJob.Close;
+                          QGetCurrJob.ParamByName('JobName').AsString := SLJobs[z];
+                          QGetCurrJob.Open;
+
+                          SLExclJars.Text := QGetCurrJob.FieldByName('ExclFinal').AsString;
+
+                          for y := 0 to SLExclJars.count - 1 do
+                             begin
+
+                                if not RemoveComm(SLExclJars[y], TmpStr2)
+                                then
+                                   Continue;
+
+                                if (TmpStr2[1] <> '/') and
+                                   (TmpStr2[1] <> '¤')
+                                then
+                                   if Pos(AnsiLowerCase(TmpStr2), AnsiLowerCase(FileList[x])) > 0
+                                   then
+                                      begin
+                                         ExcludeFile := True;
+                                         Break;
+                                      end;
+
+                             end;
+
+                          if ExcludeFile
+                          then
+                             Break;
+
+                       end;
+
+                    if ExcludeFile
+                    then
+                       Continue;
 
                     if zipFile.IsValid(FileList[x])
                     then
@@ -1810,7 +1858,7 @@ begin
            FileLines.Clear;
 
            FileLines.Add('#Fri Mar 17 15:27:20 GMT 2023');
-           FileLines.Add('distributionUrl=https\://services.gradle.org/distributions/gradle-8.1-all.zip');
+           FileLines.Add('distributionUrl=https\://services.gradle.org/distributions/gradle-8.11.1-all.zip');
            FileLines.Add('distributionPath=wrapper/dists');
            FileLines.Add('zipStorePath=wrapper/dists');
            FileLines.Add('zipStoreBase=GRADLE_USER_HOME');
@@ -1862,8 +1910,8 @@ begin
            FileLines.Clear;
 
            FileLines.Add('plugins {');
-           FileLines.Add('    id ''com.android.application'' version ''8.1.1'' apply false');
-           FileLines.Add('    id ''com.android.library'' version ''8.1.1'' apply false');
+           FileLines.Add('    id ''com.android.application'' version ''8.10.0-rc02'' apply false');
+           FileLines.Add('    id ''com.android.library'' version ''8.10.0-rc02'' apply false');
 //           FileLines.Add('    id ''org.jetbrains.kotlin.android'' version ''1.6.10'' apply false');
            FileLines.Add('}');
 
@@ -2519,20 +2567,20 @@ begin
 
               end;
 
+           if not DirectoryExists(ProjDir + 'Libs\SoFiles')
+           then
+              begin
+                 CreateDir(ProjDir + 'Libs\SoFiles');
+                 CreateDir(ProjDir + 'Libs\SoFiles\32');
+                 CreateDir(ProjDir + 'Libs\SoFiles\64');
+              end;
+
            FileList := nil;
            FileList := TDirectory.GetFiles(LibsDir, '*.so', TSearchOption.soAllDirectories);
 
            if Length(FileList) > 0
            then
               begin
-
-                 if not DirectoryExists(ProjDir + 'Libs\SoFiles')
-                 then
-                    begin
-                       CreateDir(ProjDir + 'Libs\SoFiles');
-                       CreateDir(ProjDir + 'Libs\SoFiles\32');
-                       CreateDir(ProjDir + 'Libs\SoFiles\64');
-                    end;
 
                  for x := 0 to High(FileList) do
                     begin
@@ -2547,28 +2595,6 @@ begin
 
                              CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\32\' + ExtractFileName(FileList[x])), False);
 
-                             if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]))
-                             then
-                               begin
-
-                                  ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
-                                  ProjFileLinesOut.Add('                    <Platform Name="Android">');
-                                  ProjFileLinesOut.Add('                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
-                                  ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                  ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
-                                  ProjFileLinesOut.Add('                    </Platform>');
-                                  ProjFileLinesOut.Add('                </DeployFile>');
-
-                                  ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
-                                  ProjFileLinesOut.Add('                    <Platform Name="Android">');
-                                  ProjFileLinesOut.Add('                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
-                                  ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                  ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
-                                  ProjFileLinesOut.Add('                    </Platform>');
-                                  ProjFileLinesOut.Add('                </DeployFile>');
-
-                               end;
-
                           end;
 
                        if Pos('arm64-v8a', FileList[x]) > 0
@@ -2581,29 +2607,99 @@ begin
 
                              CopyFile(PChar(FileList[x]), PChar(ProjDir + 'Libs\SoFiles\64\' + ExtractFileName(FileList[x])), False);
 
-                             if not FoundInFile(GetCurrentProjectFileName, '<DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]))
-                             then
-                               begin
-
-                                  ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
-                                  ProjFileLinesOut.Add('                    <Platform Name="Android64">');
-                                  ProjFileLinesOut.Add('                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
-                                  ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                  ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
-                                  ProjFileLinesOut.Add('                    </Platform>');
-                                  ProjFileLinesOut.Add('                </DeployFile>');
-
-                                  ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
-                                  ProjFileLinesOut.Add('                    <Platform Name="Android64">');
-                                  ProjFileLinesOut.Add('                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
-                                  ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
-                                  ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
-                                  ProjFileLinesOut.Add('                    </Platform>');
-                                  ProjFileLinesOut.Add('                </DeployFile>');
-
-                               end;
-
                           end;
+
+                    end;
+
+              end;
+
+           FileList := nil;
+           FileList := TDirectory.GetFiles(ProjDir + 'Libs\SoFiles\32', '*.so', TSearchOption.soAllDirectories);
+
+           if Length(FileList) > 0
+           then
+              begin
+
+                 for x := 0 to High(FileList) do
+                    begin
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android64">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android64">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\32\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                    end;
+
+              end;
+
+           FileList := nil;
+           FileList := TDirectory.GetFiles(ProjDir + 'Libs\SoFiles\64', '*.so', TSearchOption.soAllDirectories);
+
+           if Length(FileList) > 0
+           then
+              begin
+
+                 for x := 0 to High(FileList) do
+                    begin
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android64">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android64">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Release" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
+
+                        ProjFileLinesOut.Add('                <DeployFile LocalName="Libs\SoFiles\64\' + ExtractFileName(FileList[x]) + '" Configuration="Debug" Class="File">');
+                        ProjFileLinesOut.Add('                    <Platform Name="Android">');
+                        ProjFileLinesOut.Add('                        <RemoteDir>library\lib\arm64-v8a\</RemoteDir>');
+                        ProjFileLinesOut.Add('                        <RemoteName>' + ExtractFileName(FileList[x]) + '</RemoteName>');
+                        ProjFileLinesOut.Add('                        <Overwrite>true</Overwrite>');
+                        ProjFileLinesOut.Add('                    </Platform>');
+                        ProjFileLinesOut.Add('                </DeployFile>');
 
                     end;
 
@@ -2625,7 +2721,16 @@ begin
 
                     end
                  else
-                    ProjFileLinesOut.Add(ProjFileLinesIn[i]);
+                    if Pos('<DeployFile LocalName="Libs\SoFiles\', ProjFileLinesIn[i]) > 0
+                    then
+                       begin
+
+                          while Pos('</DeployFile>', ProjFileLinesIn[i]) = 0 do
+                             Inc(i);
+
+                       end
+                    else
+                       ProjFileLinesOut.Add(ProjFileLinesIn[i]);
 
                  Inc(i);
 
