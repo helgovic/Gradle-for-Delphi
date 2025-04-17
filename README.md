@@ -3,7 +3,7 @@ Download dependencies from repositories, extract and create new jar, create JNI 
 
 This addon adds gradle functionality to the Delphi IDE. It downloads Libraries with all dependencies. It then extract all the classes from the jar files, and creates a new jar with these classes. This jar file is added to the project.  
 
-You have to download gradle 8.1 from here https://gradle.org/releases/.
+You have to download gradle 8.11.1 from here https://gradle.org/releases/.
 Install and add gradle to your path variable.
 
 You need to have JEDI JCL installed.
