@@ -59,7 +59,7 @@ var
    FGetJarsExpert: TGetJarsExpert;
 //   IDENot: Integer;
 
-{$IFDEF VER360}
+{$IFDEF VER370}
 {$ELSEIF VER350}
 {$ELSE}
 function AddIconToImageList(AIcon: TIcon; ImageList: TCustomImageList;
@@ -308,7 +308,7 @@ begin
 
          Bmp.LoadFromResourceName(HInstance, 'AndroidBmp');
 
-         {$IFDEF VER360}
+         {$IFDEF VER370}
              ImageIndex := AddGraphicToVirtualImageList(bmp, NTAServices.ImageList as TVirtualImageList, '', False);
          {$ELSEIF VER350}
              ImageIndex := AddGraphicToVirtualImageList(bmp, NTAServices.ImageList as TVirtualImageList, '', False);
@@ -418,6 +418,8 @@ begin
    FHistory.Free;
    FGetJars.Free;
    FSettings.Free;
+   FBackUp.Free;
+   FRestore.Free;
 
    inherited Destroy;
 
@@ -448,6 +450,10 @@ begin
    Var
      ITS : IOTAIDEThemingServices;
   {$ENDIF Ver360}
+   {$IFDEF Ver370}
+   Var
+     ITS : IOTAIDEThemingServices;
+  {$ENDIF Ver370}
 
    Begin
 
@@ -460,6 +466,16 @@ begin
              ITS.ApplyTheme(Component);
          End;
      {$ENDIF Ver360}
+
+     {$IFDEF Ver370}
+     If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then
+       If ITS.IDEThemingEnabled Then
+         Begin
+           ITS.RegisterFormClass(AFormClass);
+           If Assigned(Component) Then
+             ITS.ApplyTheme(Component);
+         End;
+     {$ENDIF Ver370}
 
      {$IFDEF Ver350}
      If Supports(BorlandIDEServices, IOTAIDEThemingServices, ITS) Then
