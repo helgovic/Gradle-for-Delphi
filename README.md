@@ -1,4 +1,4 @@
-<img width="1047" height="839" alt="GradleForDelphi" src="https://github.com/user-attachments/assets/d7299003-f15f-4f35-8bc6-3aee76a473c4" />
+<img width="1043" height="847" alt="MainWindow" src="https://github.com/user-attachments/assets/8596c8c3-11c2-4a25-b7bf-38a99afba861" />
 
 # Gradle-for-Delphi
 Download dependencies from repositories, extract and create new jar, create JNI file, add to project.
