@@ -22,6 +22,7 @@ type
     HTMLabel4: TMemo;
     HTMLabel5: TMemo;
     LinkLabel2: TLinkLabel;
+    Image5: TImage;
     procedure LinkLabel2LinkClick(Sender: TObject; const Link: string;
       LinkType: TSysLinkType);
     procedure LinkLabel1LinkClick(Sender: TObject; const Link: string;
