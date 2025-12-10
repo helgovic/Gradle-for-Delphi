@@ -3,7 +3,7 @@ object FGenAndrJNI: TFGenAndrJNI
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Generate JNI from Android.jar'
-  ClientHeight = 367
+  ClientHeight = 389
   ClientWidth = 624
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,12 +16,14 @@ object FGenAndrJNI: TFGenAndrJNI
   TextHeight = 15
   object Panel1: TPanel
     Left = 0
-    Top = 294
+    Top = 316
     Width = 624
     Height = 73
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 5
+    TabOrder = 6
+    ExplicitLeft = 2
+    ExplicitTop = 294
     object BGo: TButton
       Left = 147
       Top = 12
@@ -42,7 +44,7 @@ object FGenAndrJNI: TFGenAndrJNI
     end
   end
   object BEAndroidJar: TButtonedEdit
-    Left = 3
+    Left = 24
     Top = 50
     Width = 575
     Height = 23
@@ -56,7 +58,7 @@ object FGenAndrJNI: TFGenAndrJNI
   end
   object Memo1: TMemo
     AlignWithMargins = True
-    Left = 3
+    Left = 24
     Top = 3
     Width = 575
     Height = 44
@@ -80,8 +82,8 @@ object FGenAndrJNI: TFGenAndrJNI
     TabOrder = 0
   end
   object LEClasses: TLabeledEdit
-    Left = 3
-    Top = 94
+    Left = 24
+    Top = 100
     Width = 575
     Height = 23
     EditLabel.Width = 309
@@ -91,21 +93,21 @@ object FGenAndrJNI: TFGenAndrJNI
     Text = ''
   end
   object LEOutFile: TLabeledEdit
-    Left = 3
-    Top = 140
+    Left = 24
+    Top = 172
     Width = 575
     Height = 23
-    EditLabel.Width = 492
+    EditLabel.Width = 3
     EditLabel.Height = 15
-    EditLabel.Caption = 
-      'unit name. e.g. ConnectivityManager will create AndroidApi.JNI.C' +
-      'onnectivityManager.pas file'
-    TabOrder = 3
+    EditLabel.ShowAccelChar = False
+    EditLabel.Layout = tlTop
+    EditLabel.WordWrap = True
+    TabOrder = 4
     Text = ''
   end
   object MOutput: TMemo
-    Left = 3
-    Top = 180
+    Left = 24
+    Top = 206
     Width = 575
     Height = 91
     EditMargins.Auto = True
@@ -116,7 +118,23 @@ object FGenAndrJNI: TFGenAndrJNI
     Font.Style = []
     ParentFont = False
     ReadOnly = True
-    TabOrder = 4
+    TabOrder = 5
+  end
+  object Memo2: TMemo
+    Left = 24
+    Top = 134
+    Width = 575
+    Height = 32
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BorderStyle = bsNone
+    Lines.Strings = (
+      
+        'unit name. e.g. ConnectivityManager will create AndroidApi.JNI.C' +
+        'onnectivityManager.pas file in project '
+      'directory')
+    ReadOnly = True
+    TabOrder = 3
   end
   object ImageList1: TImageList
     ShareImages = True

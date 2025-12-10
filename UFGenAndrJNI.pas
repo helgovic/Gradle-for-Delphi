@@ -19,6 +19,7 @@ type
     LEOutFile: TLabeledEdit;
     MOutput: TMemo;
     FileOpenDialog: TFileOpenDialog;
+    Memo2: TMemo;
     procedure BCloseClick(Sender: TObject);
     procedure BGoClick(Sender: TObject);
     procedure BEAndroidJarRightButtonClick(Sender: TObject);
