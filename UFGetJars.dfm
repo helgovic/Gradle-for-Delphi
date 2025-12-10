@@ -681,6 +681,14 @@ object FGetJars: TFGetJars
       Caption = 'Restore/Import Settings'
       OnClick = MIRestoreClick
     end
+    object GenerateJNIfilefromAndroidjar1: TMenuItem
+      Caption = 'Generate JNI file from Android.jar'
+      OnClick = GenerateJNIfilefromAndroidjar1Click
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      OnClick = Help1Click
+    end
   end
   object QDefRepositoriesNew: TFDQuery
     Connection = FDCJobs

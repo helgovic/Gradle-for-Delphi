@@ -57,6 +57,8 @@ type
     TSActive: TToggleSwitch;
     MIBackUp: TMenuItem;
     MIRestore: TMenuItem;
+    Help1: TMenuItem;
+    GenerateJNIfilefromAndroidjar1: TMenuItem;
     procedure BGoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CBProjJobsSelect(Sender: TObject);
@@ -71,6 +73,8 @@ type
     procedure MISettingsClick(Sender: TObject);
     procedure MIBackUpClick(Sender: TObject);
     procedure MIRestoreClick(Sender: TObject);
+    procedure Help1Click(Sender: TObject);
+    procedure GenerateJNIfilefromAndroidjar1Click(Sender: TObject);
   private
     procedure ExecOut(const Text: string);
     procedure LoadJob(JobNam: String);
@@ -85,7 +89,8 @@ const
   REG_BUILD_OPTIONS = 'GradleDelphi';
 
 var
-  FGetJars: TFGetJars;
+   FGetJars: TFGetJars;
+   ConverterPath: String;
 
 function GetProjectGroup: IOTAProjectGroup;
 function GetCurrentProject: IOTAProject;
@@ -96,7 +101,7 @@ function MemoStrToIniStr(InStr: string): string;
 implementation
 
 uses
-   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs, UFSettings, UFBackUp, UFRestore;
+   JclSysUtils, Registry, UFAndroidManifest, JclStrings, IniFiles, UFRepositories, UFHistory, DCCStrs, UFSettings, UFBackUp, UFRestore, UFJarHelp, UFGenAndrJNI;
 
 {$R *.dfm}
 
@@ -104,7 +109,7 @@ var
    FileLines: TStringList;
    NoClose: Boolean = False;
    UseJava2OP: Boolean = True;
-   ConverterPath: String;
+
 
 function RemoveComm(InString: String; var OutString: String): Boolean;
 begin
@@ -566,6 +571,7 @@ begin
       FSettings.BEJIPath.Text := ReadString(REG_BUILD_OPTIONS, 'JavaImport Location', '');
       FSettings.BEBuildToolsPath.Text := ReadString(REG_BUILD_OPTIONS, 'Build Tools Location', '');
       FSettings.RBJava2OP.Checked := ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
+      FSettings.MAllwExcludeJNI.Lines.Text := ReadString(REG_BUILD_OPTIONS, 'Allways Exclude JNI', 'guava' + sLineBreak + 'kotlin');
       FSettings.RbJavaImport.Checked := not ReadBool(REG_BUILD_OPTIONS, 'Java2OP', True);
       FSettings.BEJDKHome.Text := ReadString(REG_BUILD_OPTIONS, 'JDK Location', '');
    finally
@@ -692,6 +698,18 @@ begin
    if CBProjJobs.Items.Count > 0
    then
       LoadJob(CBProjJobs.Items[CBProjJobs.Items.Count - 1]);
+
+end;
+
+procedure TFGetJars.GenerateJNIfilefromAndroidjar1Click(Sender: TObject);
+begin
+   FGenAndrJNI.ShowModal;
+end;
+
+procedure TFGetJars.Help1Click(Sender: TObject);
+begin
+
+   FJarHelp.Show;
 
 end;
 
@@ -1427,9 +1445,15 @@ begin
                     for x := 0 to SLExclJars.count - 1 do
                        begin
 
+//                          MStatus.Lines.Add('exclline  ' + SLExclJars[x]);
                           if not RemoveComm(SLExclJars[x], TmpStr)
                           then
                              Continue;
+
+
+//                          MStatus.Lines.Add('TmpStr  ' + TmpStr);
+//                          MStatus.Lines.Add('ExclDir ' + LibsDir + '\ExtractedClasses\' + StrAfter('/',  TmpStr));
+//                          SendMessage(MStatus.Handle, WM_VSCROLL, SB_BOTTOM, 0);
 
                           if TmpStr[1] = '/'
                           then
@@ -1926,6 +1950,13 @@ begin
            FileLines.Add('}');
            FileLines.Add('');
            FileLines.Add('android {');
+           FileLines.Add('    splits {');
+           FileLines.Add('        density {');
+           FileLines.Add('            enable true');
+           FileLines.Add('            exclude "ldpi", "xxhdpi", "xxxhdpi"');
+           FileLines.Add('            compatibleScreens ''small'', ''normal'', ''large'', ''xlarge''');
+           FileLines.Add('         }');
+            FileLines.Add('   }');
            FileLines.Add('    namespace ''' + ProjPackage + '''');
            FileLines.Add('    compileSdkVersion ' + TargetSDK);
 //           FileLines.Add('    buildToolsVersion "' + BuildToolsVer + '"');
@@ -3637,6 +3668,40 @@ begin
                      then
                         Continue;
 
+                     FileLines.Free;
+                     FileLines := TStringList.Create;
+                     FileLines.Clear;
+
+                     with TRegIniFile.Create(REG_KEY) do
+                     try
+                        FileLines.Text := ReadString(REG_BUILD_OPTIONS, 'Allways Exclude JNI', 'guava' + sLineBreak + 'kotlin');
+                     finally
+                        Free;
+                     end;
+
+                     for i := 0 to FileLines.Count - 1 do
+                        begin
+
+                           if not RemoveComm(FileLines[i], TmpStr)
+                           then
+                              Continue;
+
+                           if (TmpStr[1] <> '/') and
+                              (TmpStr[1] <> '¤')
+                           then
+                              if Pos(AnsiLowerCase(TmpStr), AnsiLowerCase(FileList[x])) > 0
+                              then
+                                 begin
+                                    ExcludeFile := True;
+                                    Break;
+                                 end;
+
+                        end;
+
+                     if ExcludeFile
+                     then
+                        Continue;
+
                      TThread.Synchronize(TThread.CurrentThread,
                      procedure
                      begin
@@ -3888,6 +3953,10 @@ begin
                         (Pos(' initialzation;', AnsiLowerCase(FileLines[i])) > 0) or
                         (Pos(' finalization:', AnsiLowerCase(FileLines[i])) > 0) or
                         (Pos(' finalization;', AnsiLowerCase(FileLines[i])) > 0) or
+                        ((Pos(' function ', AnsiLowerCase(FileLines[i])) > 0) and
+                         (Pos('$', StrAfter(' function ', FileLines[i])) > 0)) or
+                        ((Pos(' procedure ', AnsiLowerCase(FileLines[i])) > 0) and
+                         (Pos('$', StrAfter(' procedure ', FileLines[i])) > 0)) or
                         (Pos('procedure -', FileLines[i]) > 0) or
                         (Pos('function -', FileLines[i]) > 0)
                      then

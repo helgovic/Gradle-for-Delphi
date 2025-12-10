@@ -53,7 +53,7 @@ type
 implementation
 
 uses
-   JclStrings, UFGetJars, UFAndroidManifest, UFRepositories, UFHistory, UFSettings, UFBackUp, UFRestore;
+   JclStrings, UFGetJars, UFAndroidManifest, UFRepositories, UFHistory, UFSettings, UFBackUp, UFRestore, UFJarHelp, UFGenAndrJNI;
 
 var
    FGetJarsExpert: TGetJarsExpert;
@@ -328,6 +328,8 @@ begin
          FSettings := TFSettings.Create(nil);
          FBackUp := TFBackUp.Create(nil);
          FRestore := TFRestore.Create(nil);
+         FJarHelp := TFJarHelp.Create(nil);
+         FGenAndrJNI := TFGenAndrJNI.Create(nil);
 
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFGetJars, FGetJars);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFManifest, FManifest);
@@ -336,6 +338,8 @@ begin
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFSettings, FSettings);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFBackUp, FBackUp);
          TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFRestore, FRestore);
+         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFGenAndrJNI, FGenAndrJNI);
+//         TBADIToolsAPIFunctions.RegisterFormClassForTheming(TFJarHelp, FJarHelp);
 
          with TRegIniFile.Create(REG_KEY) do
          try

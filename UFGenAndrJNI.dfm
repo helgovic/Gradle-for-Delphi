@@ -1,10 +1,10 @@
-object FSettings: TFSettings
+object FGenAndrJNI: TFGenAndrJNI
   Left = 0
   Top = 0
   BorderStyle = bsToolWindow
-  Caption = 'Settings'
-  ClientHeight = 534
-  ClientWidth = 592
+  Caption = 'Generate JNI from Android.jar'
+  ClientHeight = 367
+  ClientWidth = 624
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,137 +12,38 @@ object FSettings: TFSettings
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poDesktopCenter
+  OnShow = FormShow
   TextHeight = 15
-  object Label3: TLabel
-    Left = 16
-    Top = 159
-    Width = 94
-    Height = 15
-    Caption = 'Path to JDK home'
-  end
-  object Label4: TLabel
-    Left = 17
-    Top = 213
-    Width = 97
-    Height = 15
-    Caption = 'Path to build tools'
-  end
-  object Label5: TLabel
-    Left = 16
-    Top = 267
-    Width = 213
-    Height = 15
-    Caption = 'Allways exclude when generating JNI file'
-  end
   object Panel1: TPanel
     Left = 0
-    Top = 459
-    Width = 592
-    Height = 75
+    Top = 294
+    Width = 624
+    Height = 73
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 4
-    ExplicitTop = 318
-    object BOK: TButton
-      Left = 175
-      Top = 13
-      Width = 117
-      Height = 49
-      Caption = 'OK'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 0
-      OnClick = BOKClick
-    end
-    object Button1: TButton
-      Left = 298
-      Top = 13
-      Width = 117
-      Height = 49
-      Caption = 'Cancel'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ModalResult = 2
-      ParentFont = False
-      TabOrder = 1
-    end
-  end
-  object GroupBox1: TGroupBox
-    Left = 16
-    Top = 20
-    Width = 593
-    Height = 129
-    Caption = 'Java to Pascal Converter'
-    TabOrder = 0
-    object Label1: TLabel
-      Left = 170
-      Top = 19
-      Width = 179
-      Height = 15
-      Caption = 'Path to folder containing Java2Op'
-    end
-    object Label2: TLabel
-      Left = 170
-      Top = 63
-      Width = 193
-      Height = 15
-      Caption = 'Path to folder containing JavaImport'
-    end
-    object RBJava2OP: TRadioButton
-      Left = 12
-      Top = 36
-      Width = 143
-      Height = 20
-      Caption = 'Use Java2OP'
-      Checked = True
-      TabOrder = 1
-      TabStop = True
-    end
-    object RbJavaImport: TRadioButton
-      Left = 12
-      Top = 77
+    TabOrder = 5
+    object BGo: TButton
+      Left = 147
+      Top = 12
       Width = 161
-      Height = 25
-      Caption = 'Use Winsoft JavaImport'
-      TabOrder = 2
-    end
-    object BEJ2OPath: TButtonedEdit
-      Left = 170
-      Top = 34
-      Width = 405
-      Height = 23
-      AutoSelect = False
-      Images = ImageList1
-      LeftButton.ImageIndex = 1
-      RightButton.ImageIndex = 0
-      RightButton.Visible = True
+      Height = 49
+      Caption = 'Go'
       TabOrder = 0
-      OnRightButtonClick = BEJ2OPathRightButtonClick
+      OnClick = BGoClick
     end
-    object BEJIPath: TButtonedEdit
-      Left = 170
-      Top = 78
-      Width = 405
-      Height = 23
-      AutoSelect = False
-      Images = ImageList1
-      LeftButton.ImageIndex = 1
-      RightButton.ImageIndex = 0
-      RightButton.Visible = True
-      TabOrder = 3
-      OnRightButtonClick = BEJIPathRightButtonClick
+    object BClose: TButton
+      Left = 314
+      Top = 12
+      Width = 161
+      Height = 49
+      Caption = 'Close'
+      TabOrder = 1
+      OnClick = BCloseClick
     end
   end
-  object BEJDKHome: TButtonedEdit
-    Left = 16
-    Top = 178
+  object BEAndroidJar: TButtonedEdit
+    Left = 3
+    Top = 50
     Width = 575
     Height = 23
     AutoSelect = False
@@ -151,39 +52,76 @@ object FSettings: TFSettings
     RightButton.ImageIndex = 0
     RightButton.Visible = True
     TabOrder = 1
-    OnRightButtonClick = BEJDKHomeRightButtonClick
+    OnRightButtonClick = BEAndroidJarRightButtonClick
   end
-  object BEBuildToolsPath: TButtonedEdit
-    Left = 16
-    Top = 232
+  object Memo1: TMemo
+    AlignWithMargins = True
+    Left = 3
+    Top = 3
+    Width = 575
+    Height = 44
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BorderStyle = bsNone
+    EditMargins.Auto = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    Lines.Strings = (
+      'Directory containing android.jar. e.g. '
+      
+        'C:\Users\Public\Documents\Embarcadero\Studio\37.0\CatalogReposit' +
+        'ory\AndroidSDK-'
+      '37.0.57242.3601\platforms\android-36.1')
+    ParentFont = False
+    ReadOnly = True
+    TabOrder = 0
+  end
+  object LEClasses: TLabeledEdit
+    Left = 3
+    Top = 94
     Width = 575
     Height = 23
-    AutoSelect = False
-    Images = ImageList1
-    LeftButton.ImageIndex = 1
-    RightButton.ImageIndex = 0
-    RightButton.Visible = True
+    EditLabel.Width = 309
+    EditLabel.Height = 15
+    EditLabel.Caption = 'Classes to process. e.g. android.net.ConnectivityManager.*'
     TabOrder = 2
-    OnRightButtonClick = BEJDKHomeRightButtonClick
+    Text = ''
   end
-  object MAllwExcludeJNI: TMemo
-    Left = 16
-    Top = 288
+  object LEOutFile: TLabeledEdit
+    Left = 3
+    Top = 140
     Width = 575
-    Height = 161
+    Height = 23
+    EditLabel.Width = 492
+    EditLabel.Height = 15
+    EditLabel.Caption = 
+      'unit name. e.g. ConnectivityManager will create AndroidApi.JNI.C' +
+      'onnectivityManager.pas file'
     TabOrder = 3
+    Text = ''
   end
-  object FileOpenDialog: TFileOpenDialog
-    FavoriteLinks = <>
-    FileTypes = <>
-    Options = [fdoPickFolders]
-    Left = 75
-    Top = 75
+  object MOutput: TMemo
+    Left = 3
+    Top = 180
+    Width = 575
+    Height = 91
+    EditMargins.Auto = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    TabOrder = 4
   end
   object ImageList1: TImageList
     ShareImages = True
-    Left = 278
-    Top = 75
+    Left = 584
+    Top = 219
     Bitmap = {
       494C010102000800040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
@@ -323,5 +261,14 @@ object FSettings: TFSettings
       0000F00F000000000001F00F000000000003FC1F000000000007FC3F00000000
       00FFFE3F0000000081FFFFFF0000000000000000000000000000000000000000
       000000000000}
+  end
+  object FileOpenDialog: TFileOpenDialog
+    DefaultFolder = 'C:\Users\Public\Documents\Embarcadero'
+    FavoriteLinks = <>
+    FileTypes = <>
+    Options = [fdoPickFolders, fdoPathMustExist]
+    Title = 'Select directory containing android.jar file'
+    Left = 59
+    Top = 299
   end
 end

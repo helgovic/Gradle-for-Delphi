@@ -25,6 +25,8 @@ type
     BEJDKHome: TButtonedEdit;
     Label4: TLabel;
     BEBuildToolsPath: TButtonedEdit;
+    MAllwExcludeJNI: TMemo;
+    Label5: TLabel;
     procedure BEJ2OPathRightButtonClick(Sender: TObject);
     procedure BEJIPathRightButtonClick(Sender: TObject);
     procedure BOKClick(Sender: TObject);
@@ -168,6 +170,7 @@ begin
       WriteString(REG_BUILD_OPTIONS, 'JavaImport Location', BEJIPath.Text);
       WriteString(REG_BUILD_OPTIONS, 'JDK Location', BEJDKHome.Text);
       WriteString(REG_BUILD_OPTIONS, 'Build Tools Location', BEBuildToolsPath.Text);
+      WriteString(REG_BUILD_OPTIONS, 'Allways Exclude JNI', MAllwExcludeJNI.Lines.Text);
       WriteBool(REG_BUILD_OPTIONS, 'Java2OP', RBJava2OP.Checked);
    finally
       Free;
