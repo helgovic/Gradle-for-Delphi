@@ -34,7 +34,7 @@ You have to add any dependencies to these libs in the dependencies box.
 
 In the "Exclude when building JNI pas file" enter libs/directories/class's that are not to be processed by Java2OP. This can be content that Java2OP cannot process (Hopefully you don't need to access it in your code).
 
-In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be test or compile time dependensies.
+In the "Exclude from final jar" enter libs/directories/class's that are not to be included in the final jar file. It can be classes contained in other jars/aars.
 
 Add repositories needed for your project in "Repositories".
 
